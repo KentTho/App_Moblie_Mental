@@ -1,0 +1,5 @@
+nút r là reset khi update code
+
+flutter run chạy lệnh dự án
+
+flutter run -d emulator-5554
