@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+pydantic
+sqlalchemy
+asyncpg  # nếu dùng PostgreSQL
+passlib[bcrypt]  # mã hóa mật khẩu
+python-jose[cryptography]  # JWT token
