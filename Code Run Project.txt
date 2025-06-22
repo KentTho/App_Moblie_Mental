@@ -1,5 +1,24 @@
+FE
+
 nút r là reset khi update code
 
 flutter run chạy lệnh dự án
 
 flutter run -d emulator-5554
+
+
+
+BE
+ chạy môi trường ảo: .\venv-ai\Scripts\activate
+thoát ra: deactivate
+
+
+database: 
+
+psql -U admin -h localhost -d postgres
+(cách két nối tới db bằng cmd thường)
+
+
+wweb 
+
+http://127.0.0.1:8000/docs#/ => két nối tới FastAPI

@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:mental_health_app/features/auth/page/login.dart';
+import 'package:dio/dio.dart';
 
 
 class RegisterPage extends StatefulWidget {
