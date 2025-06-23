@@ -10,7 +10,7 @@ class ProfilePage extends StatelessWidget {
       'id': user.uid,
       'email': user.email ?? '',
       'password': '••••••••', // Never show actual password
-      'username': user.displayName ?? 'Người dùng',
+      'full_name': user.displayName ?? 'Nguoi Dung',
       'role': 'user', // Default role
       'is_verified': user.emailVerified,
       'created_at': user.metadata.creationTime ?? DateTime.now(),
@@ -28,8 +28,8 @@ class ProfilePage extends StatelessWidget {
           gradient: LinearGradient(
             colors: [
               Color(0xFFE8F5E8), // Soft mint green
-              Color(0xFFF0F8FF), // Alice blue
-              Color(0xFFFFF0F5), // Lavender blush
+              Color(0xFFF0FFF0), // Honeydew
+              Color(0xFFF5FFFA), // Mint cream
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -43,7 +43,7 @@ class ProfilePage extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFF6B73FF), Color(0xFF9B59B6)],
+                    colors: [Color(0xFF4CAF50), Color(0xFF2E7D32)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -53,7 +53,7 @@ class ProfilePage extends StatelessWidget {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.purple.withOpacity(0.3),
+                      color: Color(0xFF4CAF50).withOpacity(0.3),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     ),
@@ -142,7 +142,7 @@ class ProfilePage extends StatelessWidget {
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFFf093fb), Color(0xFFf5576c)],
+                  colors: [Color(0xFF66BB6A), Color(0xFF4CAF50)],
                 ),
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -178,14 +178,14 @@ class ProfilePage extends StatelessWidget {
             padding: const EdgeInsets.all(25),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFFFFFFFF), Color(0xFFF8F9FF)],
+                colors: [Color(0xFFFFFFFF), Color(0xFFF8FFF8)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(25),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.blue.withOpacity(0.1),
+                  color: Color(0xFF4CAF50).withOpacity(0.1),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -199,12 +199,12 @@ class ProfilePage extends StatelessWidget {
                   height: 100,
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+                      colors: [Color(0xFF66BB6A), Color(0xFF4CAF50)],
                     ),
                     borderRadius: BorderRadius.circular(25),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.purple.withOpacity(0.3),
+                        color: Color(0xFF4CAF50).withOpacity(0.3),
                         blurRadius: 15,
                         offset: const Offset(0, 8),
                       ),
@@ -218,9 +218,9 @@ class ProfilePage extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
 
-                // Username
+                // full_name
                 Text(
-                  userData['username'],
+                  userData['full_name'],
                   style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -259,7 +259,7 @@ class ProfilePage extends StatelessWidget {
             title: "Email",
             value: userData['email'],
             subtitle: userData['is_verified'] ? "Đã xác thực" : "Chưa xác thực",
-            colors: [const Color(0xFF4facfe), const Color(0xFF00f2fe)],
+            colors: [const Color(0xFF4CAF50), const Color(0xFF66BB6A)],
             isVerified: userData['is_verified'],
           ),
 
@@ -270,7 +270,7 @@ class ProfilePage extends StatelessWidget {
             title: "User ID",
             value: userData['id'],
             subtitle: "Mã định danh duy nhất",
-            colors: [const Color(0xFF43e97b), const Color(0xFF38f9d7)],
+            colors: [const Color(0xFF2E7D32), const Color(0xFF388E3C)],
           ),
 
           const SizedBox(height: 15),
@@ -280,7 +280,7 @@ class ProfilePage extends StatelessWidget {
             title: "Mật khẩu",
             value: userData['password'],
             subtitle: "Bảo mật tài khoản",
-            colors: [const Color(0xFFfa709a), const Color(0xFFfee140)],
+            colors: [const Color(0xFF66BB6A), const Color(0xFF81C784)],
           ),
 
           const SizedBox(height: 15),
@@ -290,7 +290,7 @@ class ProfilePage extends StatelessWidget {
             title: "Ngày tạo tài khoản",
             value: _formatDate(userData['created_at']),
             subtitle: "Thành viên từ",
-            colors: [const Color(0xFFa8edea), const Color(0xFFfed6e3)],
+            colors: [const Color(0xFF81C784), const Color(0xFF9CCC65)],
           ),
 
           const SizedBox(height: 15),
@@ -300,7 +300,7 @@ class ProfilePage extends StatelessWidget {
             title: "Cập nhật gần nhất",
             value: _formatDate(userData['updated_at']),
             subtitle: "Lần cuối hoạt động",
-            colors: [const Color(0xFFf093fb), const Color(0xFFf5576c)],
+            colors: [const Color(0xFF4CAF50), const Color(0xFF8BC34A)],
           ),
 
           const SizedBox(height: 30),
@@ -312,7 +312,7 @@ class ProfilePage extends StatelessWidget {
                 child: _buildActionButton(
                   icon: Icons.edit_rounded,
                   label: "Chỉnh sửa",
-                  colors: [const Color(0xFF667eea), const Color(0xFF764ba2)],
+                  colors: [const Color(0xFF66BB6A), const Color(0xFF4CAF50)],
                   onTap: () {
                     // TODO: Navigate to edit profile
                   },
@@ -323,7 +323,7 @@ class ProfilePage extends StatelessWidget {
                 child: _buildActionButton(
                   icon: Icons.security_rounded,
                   label: "Bảo mật",
-                  colors: [const Color(0xFF6B73FF), const Color(0xFF9B59B6)],
+                  colors: [const Color(0xFF4CAF50), const Color(0xFF2E7D32)],
                   onTap: () {
                     // TODO: Navigate to security settings
                   },
@@ -397,7 +397,7 @@ class ProfilePage extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
-                          color: isVerified ? Colors.green : Colors.orange,
+                          color: isVerified ? Color(0xFF4CAF50) : Color(0xFFFF9800),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Icon(
@@ -478,11 +478,11 @@ class ProfilePage extends StatelessWidget {
   List<Color> _getRoleColors(String role) {
     switch (role.toLowerCase()) {
       case 'admin':
-        return [const Color(0xFFf093fb), const Color(0xFFf5576c)];
+        return [const Color(0xFF2E7D32), const Color(0xFF388E3C)];
       case 'expert':
-        return [const Color(0xFF43e97b), const Color(0xFF38f9d7)];
+        return [const Color(0xFF4CAF50), const Color(0xFF66BB6A)];
       default:
-        return [const Color(0xFF667eea), const Color(0xFF764ba2)];
+        return [const Color(0xFF66BB6A), const Color(0xFF81C784)];
     }
   }
 

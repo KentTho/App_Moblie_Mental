@@ -6,17 +6,28 @@ flutter run chạy lệnh dự án
 
 flutter run -d emulator-5554
 
+flutter emulators --launch Pixel_6_Pro
 
+flutter run -d Pixel_6_Pro
+
+flutter run -d emulator-5554
 
 BE
  chạy môi trường ảo: .\venv-ai\Scripts\activate
 thoát ra: deactivate
 
 
+uvicorn src.main:app --reload
+
 database: 
 
 psql -U admin -h localhost -d postgres
 (cách két nối tới db bằng cmd thường)
+
+\c mental_health_app
+(dẫn dến bảng)
+
+\dt
 
 
 wweb 

@@ -14,15 +14,53 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPageState extends State<RegisterPage> {
   TextEditingController email = TextEditingController();
   TextEditingController password = TextEditingController();
+  TextEditingController fullName = TextEditingController();
+  TextEditingController confirmPassword = TextEditingController();
 
   Future<void> signUp() async {
     try {
+      // Tạo tài khoản Firebase
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email.text,
         password: password.text,
       );
+
+      final user = FirebaseAuth.instance.currentUser;
+
+
+
+      // ✅ Cập nhật full name vào Firebase
+      if (user != null) {
+        await user.updateDisplayName(fullName.text); // 🟢 QUAN TRỌNG!
+        await user.reload(); // Refresh lại thông tin
+      }
+
+      // ✅ Gửi email xác thực
+      // if (!user.emailVerified) {
+      //     await user.sendEmailVerification();
+      //     ScaffoldMessenger.of(context).showSnackBar(
+      //       SnackBar(
+      //       content: Text('Email xác thực đã được gửi đến ${user.email}'),
+      //     ),
+      //   );
+      // }
+
+      // ✅ Gửi thông tin về backend (để lưu vào PostgreSQL)
+      if (user != null) {
+        final dio = Dio();
+        await dio.post(
+          'http://10.0.2.2:8000/firebase-user',
+          data: {
+            'email': user.email,
+            'uid': user.uid,
+            'full_name': fullName.text,
+          },
+        );
+      }
+
+      // ✅ Chuyển trang khi thành công
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Account created! You can now login.')),
+        const SnackBar(content: Text('Account created! You can now login.')),
       );
       Navigator.pushReplacement(
         context,
@@ -38,7 +76,7 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor: const Color(0xFF0D1B0D),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 30),
@@ -52,20 +90,21 @@ class _RegisterPageState extends State<RegisterPage> {
                     fontWeight: FontWeight.bold,
                     foreground: Paint()
                       ..shader = const LinearGradient(
-                        colors: [Colors.cyan, Colors.lightGreenAccent],
+                        colors: [Color(0xFF4CAF50), Color(0xFF81C784)],
                       ).createShader(Rect.fromLTWH(0.0, 0.0, 200.0, 70.0)),
                   ),
                 ),
                 const SizedBox(height: 40),
+                // Full name input
                 TextField(
-                  controller: email,
+                  controller: fullName,
                   style: TextStyle(color: Colors.white),
                   decoration: InputDecoration(
-                    prefixIcon: Icon(Icons.email, color: Colors.cyan),
-                    hintText: 'Enter your email',
+                    prefixIcon: Icon(Icons.person, color: Color(0xFF66BB6A)),
+                    hintText: 'Enter your full name',
                     hintStyle: TextStyle(color: Colors.white70),
                     filled: true,
-                    fillColor: Colors.white12,
+                    fillColor: Color(0xFF1B2E1B),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
                       borderSide: BorderSide.none,
@@ -74,15 +113,50 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 const SizedBox(height: 20),
                 TextField(
+                  controller: email,
+                  style: TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    prefixIcon: Icon(Icons.email, color: Color(0xFF66BB6A)),
+                    hintText: 'Enter your email',
+                    hintStyle: TextStyle(color: Colors.white70),
+                    filled: true,
+                    fillColor: Color(0xFF1B2E1B),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                TextField(
                   controller: password,
                   obscureText: true,
                   style: TextStyle(color: Colors.white),
                   decoration: InputDecoration(
-                    prefixIcon: Icon(Icons.lock, color: Colors.cyan),
+                    prefixIcon: Icon(Icons.lock, color: Color(0xFF66BB6A)),
                     hintText: 'Enter your password',
                     hintStyle: TextStyle(color: Colors.white70),
                     filled: true,
-                    fillColor: Colors.white12,
+                    fillColor: Color(0xFF1B2E1B),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Confirm password input
+                TextField(
+                  controller: confirmPassword,
+                  obscureText: true,
+                  style: TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    prefixIcon: Icon(Icons.lock_outline, color: Color(0xFF66BB6A)),
+                    hintText: 'Confirm your password',
+                    hintStyle: TextStyle(color: Colors.white70),
+                    filled: true,
+                    fillColor: Color(0xFF1B2E1B),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
                       borderSide: BorderSide.none,
@@ -90,13 +164,14 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                 ),
                 const SizedBox(height: 30),
+
                 SizedBox(
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
                     onPressed: signUp,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.cyan,
+                      backgroundColor: Color(0xFF4CAF50),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
