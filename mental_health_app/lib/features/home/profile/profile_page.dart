@@ -1,22 +1,41 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:mental_health_app/features/home/profile/edit_profile_page.dart';
+import 'package:mental_health_app/features/home/profile/security_page.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
   // Mock data for demonstration - in real app, this would come from your database
-  Map<String, dynamic> getUserData(User user) {
-    return {
-      'id': user.uid,
-      'email': user.email ?? '',
-      'password': '••••••••', // Never show actual password
-      'full_name': user.displayName ?? 'Nguoi Dung',
-      'role': 'user', // Default role
-      'is_verified': user.emailVerified,
-      'created_at': user.metadata.creationTime ?? DateTime.now(),
-      'updated_at': DateTime.now(),
-    };
+  Future<Map<String, dynamic>> getUserData(User user) async {
+    final uid = user.uid;
+    final response = await http.get(Uri.parse("http://10.0.2.2:8000/user/firebase/$uid"));
+    // 🛠 thay bằng IP backend thực tế
+
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return {
+        'id': data['id'],
+        'email': data['email'],
+        'password': '••••••••',
+        'full_name': data['full_name'] ?? 'Người dùng',
+        'role': data['role'] ?? 'user',
+        'is_verified': data['is_verified'] ?? false,
+        'avatar_url': data['avatar_url'] ?? '',
+        'birthday': data['birthday'], // ISO date string
+        'gender': data['gender'],     // 'Nam' / 'Nữ' / etc.
+        'created_at': DateTime.tryParse(data['created_at'] ?? '') ?? DateTime.now(),
+        'updated_at': DateTime.tryParse(data['updated_at'] ?? '') ?? DateTime.now(),
+      };
+    } else {
+      throw Exception("Không thể tải thông tin người dùng.");
+    }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -88,16 +107,25 @@ class ProfilePage extends StatelessWidget {
                         ),
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.edit_rounded,
-                        color: Colors.white,
-                        size: 20,
+
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfilePage()));
+                      },
+                      child:Container(
+                        padding: const EdgeInsets.all(8),
+
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.edit_rounded,
+                          color: Colors.white,
+                          size: 20,
+
+                        ),
                       ),
                     ),
                   ],
@@ -110,7 +138,21 @@ class ProfilePage extends StatelessWidget {
                   padding: const EdgeInsets.all(20),
                   child: user == null
                       ? _buildNoUserState()
-                      : _buildUserProfile(context, user),
+                      : FutureBuilder<Map<String, dynamic>>(
+                    future: getUserData(user),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return Center(child: Text("Lỗi: ${snapshot.error}"));
+                      } else if (!snapshot.hasData) {
+                        return const Center(child: Text("Không có dữ liệu người dùng"));
+                      }
+                      final userData = snapshot.data!;
+                      return _buildUserProfile(context, userData);
+                    },
+                  ),
+
                 ),
               ),
             ],
@@ -167,8 +209,9 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _buildUserProfile(BuildContext context, User user) {
-    final userData = getUserData(user);
+  Widget _buildUserProfile(BuildContext context, Map<String, dynamic> userData) {
+
+    //final userData = getUserData(user);
 
     return SingleChildScrollView(
       child: Column(
@@ -194,30 +237,44 @@ class ProfilePage extends StatelessWidget {
             child: Column(
               children: [
                 // Avatar
-                Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF66BB6A), Color(0xFF4CAF50)],
-                    ),
-                    borderRadius: BorderRadius.circular(25),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Color(0xFF4CAF50).withOpacity(0.3),
-                        blurRadius: 15,
-                        offset: const Offset(0, 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(25),
+                  child: userData['avatar_url'] != null && userData['avatar_url'].isNotEmpty
+                      ? CachedNetworkImage(
+                    imageUrl: userData['avatar_url'],
+                    width: 100,
+                    height: 100,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => CircularProgressIndicator(),
+                    errorWidget: (context, url, error) => Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(25),
                       ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.person_rounded,
-                    size: 50,
-                    color: Colors.white,
+                      child: Icon(
+                        Icons.error_outline,
+                        size: 50,
+                        color: Colors.redAccent,
+                      ),
+                    ),
+                  )
+                      : Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF66BB6A), Color(0xFF4CAF50)],
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.person_rounded,
+                      size: 50,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 20),
-
                 // full_name
                 Text(
                   userData['full_name'],
@@ -247,6 +304,7 @@ class ProfilePage extends StatelessWidget {
                     ),
                   ),
                 ),
+
               ],
             ),
           ),
@@ -285,6 +343,29 @@ class ProfilePage extends StatelessWidget {
 
           const SizedBox(height: 15),
 
+          if (userData['birthday'] != null)
+            _buildInfoCard(
+              icon: Icons.cake_rounded,
+              title: "Ngày sinh",
+              value: _formatDate(DateTime.parse(userData['birthday'])),
+              subtitle: "Ngày sinh của bạn",
+              colors: [Color(0xFF81C784), Color(0xFFB2FF59)],
+            ),
+
+
+          const SizedBox(height: 15),
+
+          if (userData['gender'] != null)
+            _buildInfoCard(
+              icon: Icons.wc_rounded,
+              title: "Giới tính",
+              value: userData['gender'],
+              subtitle: "Giới tính được khai báo",
+              colors: [Color(0xFF80CBC4), Color(0xFF4DB6AC)],
+            ),
+
+          const SizedBox(height: 15),
+
           _buildInfoCard(
             icon: Icons.access_time_rounded,
             title: "Ngày tạo tài khoản",
@@ -305,6 +386,7 @@ class ProfilePage extends StatelessWidget {
 
           const SizedBox(height: 30),
 
+
           // Action Buttons
           Row(
             children: [
@@ -314,7 +396,8 @@ class ProfilePage extends StatelessWidget {
                   label: "Chỉnh sửa",
                   colors: [const Color(0xFF66BB6A), const Color(0xFF4CAF50)],
                   onTap: () {
-                    // TODO: Navigate to edit profile
+                    Navigator.pop(context);
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfilePage()));
                   },
                 ),
               ),
@@ -325,7 +408,8 @@ class ProfilePage extends StatelessWidget {
                   label: "Bảo mật",
                   colors: [const Color(0xFF4CAF50), const Color(0xFF2E7D32)],
                   onTap: () {
-                    // TODO: Navigate to security settings
+                    Navigator.pop(context);
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const SecurityPage()));
                   },
                 ),
               ),

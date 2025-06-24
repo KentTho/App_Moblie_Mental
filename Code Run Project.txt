@@ -8,7 +8,6 @@ flutter run -d emulator-5554
 
 flutter emulators --launch Pixel_6_Pro
 
-flutter run -d Pixel_6_Pro
 
 flutter run -d emulator-5554
 
@@ -18,6 +17,8 @@ thoát ra: deactivate
 
 
 uvicorn src.main:app --reload
+
+
 
 database: 
 
@@ -29,7 +30,58 @@ psql -U admin -h localhost -d postgres
 
 \dt
 
-
+\d users
+(xem bảng)
 wweb 
 
 http://127.0.0.1:8000/docs#/ => két nối tới FastAPI
+
+
+
+
+
+---
+
+## ✅ Cách xử lý triệt để: đặt `client_encoding` = 'UTF8'
+
+### ✳️ **Cách 1: Thêm lệnh ngay sau khi đăng nhập**
+
+Khi đã vào `psql`, gõ:
+
+```sql
+SET client_encoding = 'UTF8';
+```
+
+Rồi **chạy lại câu lệnh SELECT**:
+
+```sql
+SELECT * FROM users WHERE firebase_uid = 'Ct9lxHivV9eOTwyza6ZrkReNH7v2';
+```
+
+---
+
+### ✳️ **Cách 2: Thêm biến môi trường khi khởi động**
+
+Trên dòng lệnh CMD (chưa vào `psql`), bạn gõ:
+
+```bash
+set PGCLIENTENCODING=utf8
+```
+
+Rồi đăng nhập lại:
+
+```bash
+psql -U admin -d mental_health_app
+```
+
+---
+
+### 💡 Vì sao có lỗi này?
+
+* Dữ liệu trong bảng có **ký tự Unicode (Tiếng Việt)** như “ệ”.
+* `psql` mặc định lấy mã hóa từ môi trường hệ thống (Windows thường là `WIN1252`), không khớp với `UTF8` của PostgreSQL.
+
+---
+
+Bạn thử cách 1 trước nhé, nếu ổn rồi thì mình sẽ hướng dẫn thêm về insert hoặc test API `/user/firebase` để lưu người dùng.
+

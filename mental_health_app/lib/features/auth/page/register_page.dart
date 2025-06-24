@@ -49,7 +49,7 @@ class _RegisterPageState extends State<RegisterPage> {
       if (user != null) {
         final dio = Dio();
         await dio.post(
-          'http://10.0.2.2:8000/firebase-user',
+          'http://10.0.2.2:8000/user/firebase',
           data: {
             'email': user.email,
             'uid': user.uid,

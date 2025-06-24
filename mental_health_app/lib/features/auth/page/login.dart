@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -5,6 +7,8 @@ import 'package:mental_health_app/features/auth/page/register_page.dart';
 import 'package:mental_health_app/features/home/homepage.dart';
 import 'package:dio/dio.dart';
 import '../../../firebase_options.dart';
+import 'package:http/http.dart' as http;
+
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -46,15 +50,21 @@ class _LoginState extends State<Login> {
 
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      final dio = Dio();
-      await dio.post(
-        'http://10.0.2.2:8000/firebase-user', // Đổi IP nếu chạy trên thiết bị thật
-        data: {
-          'email': user.email,
-          'uid': user.uid,
-          'full_name': user.displayName ?? '',
-        },
+      final response = await http.post(
+        Uri.parse("http://10.0.2.2:8000/user/firebase"), // Gửi về FastAPI
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "email": user.email,
+          "uid": user.uid,
+          "full_name": user.displayName ?? "Người dùng",
+        }),
       );
+
+      if (response.statusCode == 200) {
+        print("Đã lưu user vào PostgreSQL");
+      } else {
+        print("Lỗi: ${response.body}");
+      }
     }
 
   }

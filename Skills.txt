@@ -1,0 +1,82 @@
+Tuyệt vời! Dưới đây là danh sách **gợi ý video và tài nguyên hướng dẫn** cho từng **chức năng chính** trong dự án "Mental Health Support App". Mình chọn các video **cập nhật gần đây**, **sát nội dung bạn cần** và **đa số bằng tiếng Anh (có phụ đề)**, để bạn dễ học theo và áp dụng.
+
+---
+
+### ✅ 1. **Đăng ký / Đăng nhập Firebase với Flutter**
+
+📺 **Video**: [Firebase Authentication with Flutter (Google Sign In, Email/Password)](https://www.youtube.com/watch?v=ZCjIje0o1a8)
+📅 Mới cập nhật: 2024
+🔧 Nội dung: Firebase Auth, Email/Password, xử lý trạng thái đăng nhập.
+
+---
+
+### ✅ 2. **Viết nhật ký cảm xúc (Emotion Journal)**
+
+📺 **Video**: [Flutter Note Taking App with Provider](https://www.youtube.com/watch?v=s18Vq0fy0xw)
+📅 Rất phù hợp để làm màn hình ghi nhật ký
+🔧 Có quản lý trạng thái, lưu nhật ký, chỉnh sửa, xóa…
+
+---
+
+### ✅ 3. **Phân tích cảm xúc tiếng Việt bằng BERT (AI)**
+
+📺 **Video**: [Fine-tune PhoBERT for Vietnamese Sentiment Analysis](https://www.youtube.com/watch?v=9mcYBdFF4Cw)
+🌐 Ngoài ra xem:
+🔗 [Hướng dẫn dùng PhoBERT với FastAPI](https://github.com/VinAIResearch/PhoBERT)
+🔧 Tích hợp mô hình AI + FastAPI để Flutter gọi API cảm xúc.
+
+---
+
+### ✅ 4. **Hiển thị biểu đồ cảm xúc theo thời gian**
+
+📺 **Video**: [fl\_chart in Flutter | LineChart, PieChart, BarChart](https://www.youtube.com/watch?v=BOJXLm9sTk8)
+🔧 Hướng dẫn dùng thư viện `fl_chart` để vẽ biểu đồ tâm trạng.
+
+---
+
+### ✅ 5. **Gợi ý bài tập / nhạc dựa theo cảm xúc**
+
+📺 **Video**: [Building a Recommendation System (Flutter + Firebase)](https://www.youtube.com/watch?v=Wi6ZACBmcK4)
+🔧 Tích hợp dữ liệu từ Firebase để tùy biến gợi ý.
+
+---
+
+### ✅ 6. **Đặt lịch tư vấn (video call hoặc chat)**
+
+📺 **Video**: [Integrate Jitsi Meet into Flutter App](https://www.youtube.com/watch?v=xpK0W3c3Fdw)
+🔗 Tham khảo thêm: Zoom SDK hoặc WebRTC
+🔧 Cho phép đặt lịch, rồi kết nối qua video call.
+
+---
+
+### ✅ 7. **Tích hợp AI Chatbot (24/7 hỗ trợ)**
+
+📺 **Video**: [Flutter Chatbot using OpenAI GPT-3.5](https://www.youtube.com/watch?v=_X9zOfwF0do)
+📺 **Hoặc**: [Dialogflow Chatbot in Flutter](https://www.youtube.com/watch?v=kM-AuI7Jk4I)
+🔧 Chatbot đơn giản dùng GPT API hoặc Dialogflow (Google AI).
+
+---
+
+### ✅ 8. **Chế độ khẩn cấp (SOS)**
+
+📺 **Video**: [Flutter Emergency SOS App UI](https://www.youtube.com/watch?v=jA0KtyoP_iA)
+🔧 Thiết kế nút khẩn cấp, gửi cuộc gọi / thông báo đến người thân.
+
+---
+
+### ✅ 9. **Thông báo nhắc nhở (Firebase Cloud Messaging)**
+
+📺 **Video**: [Push Notification using Firebase Messaging in Flutter](https://www.youtube.com/watch?v=6vVgP0P5Sgc)
+🔧 Tạo lịch nhắc người dùng ghi nhật ký mỗi ngày.
+
+---
+
+### 🧠 Tài nguyên bổ sung (không thể thiếu):
+
+* 🔗 [FlutterFire (Firebase cho Flutter)](https://firebase.flutter.dev/)
+* 🔗 [Flutter Docs: State Management (Riverpod)](https://riverpod.dev/)
+* 🔗 [FastAPI docs (dễ hiểu, rõ ràng)](https://fastapi.tiangolo.com/)
+
+---
+
+Nếu bạn muốn, mình có thể **gợi ý lộ trình học theo tuần** hoặc **tập hợp playlist các video theo từng chức năng**, bạn cần mình giúp tiếp phần nào nhé?

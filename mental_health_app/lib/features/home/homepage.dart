@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:mental_health_app/features/auth/page/login.dart';
-import 'package:mental_health_app/features/home/profile_page.dart';
+import 'package:mental_health_app/features/home/profile/profile_page.dart';
 
 class Homepage extends StatefulWidget {
   const Homepage({super.key});
