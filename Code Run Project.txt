@@ -8,7 +8,6 @@ flutter run -d emulator-5554
 
 flutter emulators --launch Pixel_6_Pro
 
-
 flutter run -d emulator-5554
 
 BE
@@ -32,6 +31,23 @@ psql -U admin -h localhost -d postgres
 
 \d users
 (xem bảng)
+
+
+Giao diện ky/nhap: https://chatgpt.com/share/685bfd36-d014-8010-bdd8-86db07450109
+
+🔎 Nếu muốn xác nhận lại dữ liệu vẫn còn trong bảng:
+Dùng lệnh này để xem có bao nhiêu dòng dữ liệu thực tế:
+
+sql
+Sao chép mã
+SELECT COUNT(*) FROM user_profiles;
+Và hiển thị lại thông tin ngắn gọn hơn (tránh base64 dài dòng):
+
+sql
+Sao chép mã
+SELECT id, full_name, user_id FROM user_profiles;
+
+
 wweb 
 
 http://127.0.0.1:8000/docs#/ => két nối tới FastAPI

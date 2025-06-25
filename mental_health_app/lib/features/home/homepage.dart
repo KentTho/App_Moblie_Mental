@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:mental_health_app/features/auth/page/login.dart';
+import 'package:mental_health_app/features/diary/page/emotion_entry.dart';
 import 'package:mental_health_app/features/home/profile/profile_page.dart';
 
 class Homepage extends StatefulWidget {
@@ -243,7 +244,8 @@ class _HomepageState extends State<Homepage> with TickerProviderStateMixin {
                                 subtitle: "Ghi nhật ký cảm xúc",
                                 colors: [const Color(0xFF667eea), const Color(0xFF764ba2)],
                                 onTap: () {
-                                  // TODO: điều hướng tới trang Emotion Journal
+                                  Navigator.pop(context);
+                                  Navigator.push(context, MaterialPageRoute(builder: (_) => const EmotionEntry()));
                                 },
                               ),
                               _buildEnhancedFeatureButton(
