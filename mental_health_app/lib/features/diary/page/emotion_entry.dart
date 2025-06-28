@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:mental_health_app/features/diary/constants.dart';
+import 'package:mental_health_app/features/diary/core/constants.dart';
+import 'package:mental_health_app/features/diary/widge/note_fab.dart';
+import 'package:mental_health_app/features/diary/page/search_field.dart';
+
+import '../widge/note_grid.dart';
+import '../widge/notes_list.dart';
+
 
 
 class EmotionEntry extends StatefulWidget{
@@ -29,12 +35,12 @@ class _EmotionEntryState extends State<EmotionEntry> {
       ),
       child: Scaffold(
         appBar: AppBar(
-          title: Text("Emotion Entry 📒"),
+          title: const Text("Emotion Entry 📒"),
           backgroundColor: Colors.transparent,
           titleTextStyle: TextStyle(
             color: primaryColor,
             fontSize: 32,
-            fontFamily: 'Fredoka',
+            fontFamily: 'Fredo',
             fontWeight: FontWeight.bold,
           ),
           actions: [
@@ -52,38 +58,12 @@ class _EmotionEntryState extends State<EmotionEntry> {
             ),
           ],
         ),
-        floatingActionButton: FloatingActionButton.large(
-          onPressed: () {},
-          child: FaIcon(FontAwesomeIcons.plus),
-        ),
+        floatingActionButton:NoteFab(),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              TextField(
-                decoration: InputDecoration(
-                  hintText: 'Search notes .....',
-                  hintStyle: TextStyle(fontSize: 16),
-                  prefixIcon: Icon(FontAwesomeIcons.magnifyingGlass, size: 17,),
-                  fillColor: Colors.white,
-                  filled:  true,
-                  isDense: true,
-                  contentPadding: EdgeInsets.zero,
-                  prefixIconConstraints: BoxConstraints(minWidth: 42, minHeight: 42),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: primaryColor)
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: primaryColor)
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: primaryColor)
-                  ),
-                ),
-              ),
+              SearchField(),
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Row(
@@ -171,144 +151,13 @@ class _EmotionEntryState extends State<EmotionEntry> {
 }
 
 
-class NotesList extends StatefulWidget {
-  const NotesList({super.key});
-
-  @override
-  State<NotesList> createState() => _NotesListState();
-}
-
-class _NotesListState extends State<NotesList> {
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: 15,
-        itemBuilder: (context, index) {
-          return NoteCard(isInGrid: false,);
-      }
-    );
-  }
-}
 
 
-class NotesGrid extends StatelessWidget {
-  const NotesGrid({
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GridView.builder(
-      itemCount: 15,
-      clipBehavior: Clip.none,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-      ),
-      itemBuilder: (context, int index) {
-        return NoteCard(isInGrid: true,);
-      },
-    );
-  }
-}
-
-class NoteCard extends StatelessWidget {
-  const NoteCard({
-    required this.isInGrid,
-    super.key,
-  });
-
-  final bool isInGrid;
 
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: primaryColor, width: 2),
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-              blurRadius: 4,
-              color: Colors.black12.withOpacity(0.5),
-              offset: Offset(4, 4)
-          ),
-        ],
-      ),
-      padding: EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('This is going to be a title',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: gray900,
-            ),
-          ),
-          SizedBox(height: 4),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: List.generate(3, (index) =>
-                  Container(
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        color: gray100),
-                    padding: EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 2),
-                    margin: EdgeInsets.only(right: 4),
-                    child: Text('First chip',
-                      style: TextStyle(
-                          fontSize: 12,
-                          color: gray700
-                      ),
-                    ),
-                  ),
-              ),
-            ),
-          ),
-          SizedBox(height: 4),
-          if(isInGrid)
-            Expanded(
-              child: Text('Some content',
-                style: TextStyle(
-                    color: gray700
-                ),
-              ),
-            )
-          else
-            Text('Some content',
-              style: TextStyle(
-              color: gray700
-              ),
-            ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('02 November',
-                style: TextStyle(
-                  color: gray500,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              Spacer(),
-              FaIcon(
-                FontAwesomeIcons.trash,
-                size: 16,
-                color: gray500,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
+
+
+
+
+
 
