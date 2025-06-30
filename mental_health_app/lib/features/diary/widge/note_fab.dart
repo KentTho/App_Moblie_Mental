@@ -7,8 +7,12 @@ import '../core/constants.dart';
 
 class NoteFab extends StatelessWidget {
   const NoteFab({
-    super.key,
+    super.key, required this.onPressed,
   });
+
+
+  final VoidCallback? onPressed;
+
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +28,7 @@ class NoteFab extends StatelessWidget {
           ]
       ),
       child: FloatingActionButton.large(
-        onPressed: () {},
+        onPressed: onPressed,
         backgroundColor: primaryColor,
         foregroundColor: white,
         shape: RoundedRectangleBorder(

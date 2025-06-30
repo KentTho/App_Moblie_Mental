@@ -244,7 +244,6 @@ class _HomepageState extends State<Homepage> with TickerProviderStateMixin {
                                 subtitle: "Ghi nhật ký cảm xúc",
                                 colors: [const Color(0xFF667eea), const Color(0xFF764ba2)],
                                 onTap: () {
-                                  Navigator.pop(context);
                                   Navigator.push(context, MaterialPageRoute(builder: (_) => const EmotionEntry()));
                                 },
                               ),

@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:mental_health_app/features/diary/core/constants.dart';
+import 'package:mental_health_app/features/diary/page/new_or_edit_note_page.dart';
 import 'package:mental_health_app/features/diary/widge/note_fab.dart';
 import 'package:mental_health_app/features/diary/page/search_field.dart';
-
+import 'package:mental_health_app/features/diary/widge/note_icon_button.dart';
+import 'package:mental_health_app/features/diary/widge/note_icon_button_outlined.dart';
+import 'package:mental_health_app/features/home/homepage.dart';
+import 'package:flutter_quill/flutter_quill.dart';
 import '../widge/note_grid.dart';
 import '../widge/notes_list.dart';
+
 
 
 
@@ -15,6 +20,8 @@ class EmotionEntry extends StatefulWidget{
   @override
   State<EmotionEntry> createState() => _EmotionEntryState();
 }
+
+
 class _EmotionEntryState extends State<EmotionEntry> {
 
 
@@ -28,6 +35,8 @@ class _EmotionEntryState extends State<EmotionEntry> {
 
   @override
   Widget build(BuildContext context) {
+
+    
     return Theme(
       data: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
@@ -35,6 +44,7 @@ class _EmotionEntryState extends State<EmotionEntry> {
       ),
       child: Scaffold(
         appBar: AppBar(
+          automaticallyImplyLeading: false,
           title: const Text("Emotion Entry 📒"),
           backgroundColor: Colors.transparent,
           titleTextStyle: TextStyle(
@@ -44,21 +54,26 @@ class _EmotionEntryState extends State<EmotionEntry> {
             fontWeight: FontWeight.bold,
           ),
           actions: [
-            IconButton(
-              onPressed: () {},
-              icon: FaIcon(FontAwesomeIcons.rightFromBracket),
-              style: IconButton.styleFrom(
-                backgroundColor: primaryColor,
-                foregroundColor: white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(color: black, width: 2),
-                ),
-              ),
-            ),
+            NoteIconButtonOutlined(
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const Homepage()),
+                );
+              },
+            icon: FontAwesomeIcons.rightFromBracket,),
           ],
         ),
-        floatingActionButton:NoteFab(),
+        floatingActionButton:NoteFab(
+          onPressed: () {
+              Navigator.push(
+                context, 
+                MaterialPageRoute(
+                  builder: (context) => NewOrEditNotePage()
+                ),
+              );
+          },
+        ),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -68,19 +83,14 @@ class _EmotionEntryState extends State<EmotionEntry> {
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Row(
                   children: [
-                    IconButton(
+                    NoteIconButton(
+                      icon: isDescending ? FontAwesomeIcons.arrowDown : FontAwesomeIcons.arrowUp, 
+                      size: 18, 
                       onPressed: () {
                         setState(() {
                           isDescending = !isDescending;
                         });
-                      },
-                      icon: FaIcon(isDescending ? FontAwesomeIcons.arrowDown : FontAwesomeIcons.arrowUp),
-                      padding: EdgeInsets.zero,
-                      visualDensity: VisualDensity.compact,
-                      constraints: BoxConstraints(),
-                      style: IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap,),
-                      iconSize: 18,
-                      color: gray700,
+                      }
                     ),
                     SizedBox(width: 16),
                     DropdownButton(
@@ -119,22 +129,16 @@ class _EmotionEntryState extends State<EmotionEntry> {
                       },
                     ),
                     Spacer(),
-                    IconButton(
+                    NoteIconButton(
+                      icon: isGrid
+                          ? FontAwesomeIcons.tableCellsLarge
+                          : FontAwesomeIcons.bars, 
+                      size: 18, 
                       onPressed: () {
                         setState(() {
                           isGrid = !isGrid;
                         });
-                      },
-                      icon: FaIcon(isGrid
-                          ? FontAwesomeIcons.tableCellsLarge
-                          : FontAwesomeIcons.bars
-                      ),
-                      padding: EdgeInsets.zero,
-                      visualDensity: VisualDensity.compact,
-                      constraints: BoxConstraints(),
-                      style: IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap,),
-                      iconSize: 18,
-                      color: gray700,
+                      }
                     ),
                   ],
                 ),
@@ -149,6 +153,7 @@ class _EmotionEntryState extends State<EmotionEntry> {
     );
   }
 }
+
 
 
 
