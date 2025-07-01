@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:mental_health_app/features/diary/core/constants.dart';
+import 'package:mental_health_app/features/diary/widge/buildRow_newEdit.dart';
 import 'package:mental_health_app/features/diary/widge/note_icon_button.dart';
 import 'package:mental_health_app/features/diary/widge/note_icon_button_outlined.dart';
+import 'package:mental_health_app/features/diary/widge/tag_show_row.dart';
+
 
 
 
@@ -22,7 +25,10 @@ class _NewOrEditNotePageState extends State<NewOrEditNotePage> {
 
 
   QuillController _controller = QuillController.basic();
+
   bool isInitialized = false;
+
+  List<String> tags = [];
 
 
   @override
@@ -41,136 +47,94 @@ class _NewOrEditNotePageState extends State<NewOrEditNotePage> {
   }
 
 
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: 
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: NoteIconButtonOutlined( 
-                icon: FontAwesomeIcons.chevronLeft,
-                onPressed: () {},
-            ),
-          ),
-        title: Text('New note'),
-        actions: [
-          NoteIconButtonOutlined( 
-            icon: FontAwesomeIcons.pen,
-            onPressed: () {},
-          ),
-          NoteIconButtonOutlined( 
-            icon: FontAwesomeIcons.check,
-            onPressed: () {},
-          ),
-        ],
+  @override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      leading: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: NoteIconButtonOutlined(
+          icon: FontAwesomeIcons.chevronLeft,
+          onPressed: () {},
+        ),
       ),
-      body: Column(
+      title: Text('New note'),
+      actions: [
+        NoteIconButtonOutlined(
+          icon: FontAwesomeIcons.pen,
+          onPressed: () {},
+        ),
+        NoteIconButtonOutlined(
+          icon: FontAwesomeIcons.check,
+          onPressed: () {},
+        ),
+      ],
+    ),
+    body: SafeArea(
+      child: Column(
         children: [
-          TextField(
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold
-            ),
-            decoration: InputDecoration(
-              hintText: "Title Topic",
-              hintStyle: TextStyle(color: gray300),
-              border: InputBorder.none,
-            ),
-          ),
-          Row(
-            children: [
-              Expanded(
-                flex: 3,
-                child: Text('Last Modified', 
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: gray500
-                  ),
-                ),
-              ),
-              Expanded(
-                flex: 5,
-                child: 
-                  Text('08 December 2024, 03:32',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  )
-              )
-            ],
-          ),
-          Row(
-            children: [
-              Expanded(
-                flex: 3,
-                child: Text('Created',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: gray500
-                  ),
-                ),
-              ),
-              Expanded(
-                flex: 5,
-                child: 
-                  Text('08 December 2024, 03:32',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  )
-              )
-            ],
-          ),
-          Row(
-            children: [
-              Expanded(
-                flex: 3,
-                child: Row(
-                  children: [
-                    Text('Tags',
-                      style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: gray500
-                      ),
-                    ),
-                    NoteIconButton(
-                      icon: FontAwesomeIcons.circlePlus, 
-                      size: 24, 
-                      onPressed: (){}
-                    )
-                  ],
-                ),
-              ),
-              Expanded(
-                flex: 5,
-                child: 
-                Text('No tags added',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold
-                    ),
-                )
-              ),
-            ],
-          ),
+          // TIÊU ĐỀ
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Divider(
-                color: gray500,
-                thickness: 2,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: TextField(
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+              decoration: InputDecoration(
+                hintText: "Title Topic",
+                hintStyle: TextStyle(color: gray300),
+                border: InputBorder.none,
+              ),
             ),
           ),
-          // 👇 PHẦN NÀY GIÚP TOOLBAR + EDITOR Ở DƯỚI VÀ CHIẾM TOÀN BỘ DIỆN TÍCH CÒN LẠI
+
+          // NGÀY
+          BuildRowNewEdit(label: "Last Modified", value: "30 June 2025, 10:10"),
+          BuildRowNewEdit(label: "Created", value: "29 June 2025, 18:45"),
+          // TAGS
+          TagShowRow(
+            label: "Label", 
+            tags: tags, 
+            onAddTag: () {
+              setState(() {
+                tags.add("NewTag");
+              });
+            },
+          ),
+
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8.0),
+            child: Divider(color: Colors.grey, thickness: 1),
+          ),
+
+          // 🧠 PHẦN DƯỚI CÙNG: TOOLBAR + EDITOR
           Expanded(
             child: Column(
               children: [
+                Expanded(
+                  child: Stack(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: QuillEditor.basic(
+                          controller: _controller,
+                          config: QuillEditorConfig(
+                            expands: true,
+                            scrollable: true,
+                            placeholder: "Note here ....",
+                            autoFocus: false,
+                            padding: EdgeInsets.zero,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 QuillSimpleToolbar(
                   controller: _controller,
-                  config: const QuillSimpleToolbarConfig(),
-                ),
-                Expanded(
-                  child: QuillEditor.basic(
-                    controller: _controller,
-                    config: const QuillEditorConfig(
-                      placeholder: 'Note here...',
-                      expands: true,
-                      scrollable: true, // 👈 có thể có hoặc không
-                    ),
+                  config: const QuillSimpleToolbarConfig(
+                    showColorButton: true,
                   ),
                 ),
               ],
@@ -178,6 +142,10 @@ class _NewOrEditNotePageState extends State<NewOrEditNotePage> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
+
+
+
 }

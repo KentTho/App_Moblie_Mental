@@ -1,103 +1,149 @@
-FE
+📝 Ghi chú dự án: Flutter + FastAPI + PostgreSQL
 
-nút r là reset khi update code
+ ⚙️ Frontend (Flutter)
+✅ Các lệnh cơ bản
 
-flutter run chạy lệnh dự án
+ Khởi chạy dự án:
 
-flutter run -d emulator-5554
+  bash
+  flutter run
+  
 
-flutter emulators --launch Pixel_6_Pro
+ Chạy trên thiết bị cụ thể (VD: Emulator):
 
-flutter run -d emulator-5554
+  bash
+  flutter run -d emulator-5554
+  
 
-BE
- chạy môi trường ảo: .\venv-ai\Scripts\activate
-thoát ra: deactivate
+ Mở trình giả lập cụ thể (VD: Pixel 6 Pro):
 
+  bash
+  flutter emulators --launch Pixel_6_Pro
+  
+
+ Chạy lại code sau khi cập nhật (trong terminal Flutter):
+
+   Nhấn r: Hot reload (reset nhanh không mất trạng thái).
+   Nhấn R: Hot restart (khởi động lại toàn bộ app).
+
+---
+
+ 🖥 Backend (FastAPI + Python)
+
+ ✅ Thiết lập môi trường ảo Python
+
+ Kích hoạt môi trường ảo:
+
+  bash
+  .\venv-ai\Scripts\activate
+  
+
+ Thoát khỏi môi trường ảo:
+
+  bash
+  deactivate
+  
+
+✅ Chạy server FastAPI với Uvicorn
+
+bash
 
 uvicorn src.main:app --reload
 
 
+> 🔗 Giao diện tài liệu API (Swagger UI):
+> [http://127.0.0.1:8000/docs/](http://127.0.0.1:8000/docs/)
 
-database: 
+---
 
+ 🗃️ Database (PostgreSQL)
+
+ ✅ Kết nối tới PostgreSQL bằng CMD
+
+bash
 psql -U admin -h localhost -d postgres
-(cách két nối tới db bằng cmd thường)
-
-\c mental_health_app
-(dẫn dến bảng)
-
-\dt
-
-\d users
-(xem bảng)
 
 
-Giao diện ky/nhap: https://chatgpt.com/share/685bfd36-d014-8010-bdd8-86db07450109
+ Chuyển sang database chính:
 
-🔎 Nếu muốn xác nhận lại dữ liệu vẫn còn trong bảng:
-Dùng lệnh này để xem có bao nhiêu dòng dữ liệu thực tế:
+  sql
+  \c mental_health_app
+  
 
-sql
-Sao chép mã
-SELECT COUNT(*) FROM user_profiles;
-Và hiển thị lại thông tin ngắn gọn hơn (tránh base64 dài dòng):
+ Xem danh sách bảng:
 
-sql
-Sao chép mã
-SELECT id, full_name, user_id FROM user_profiles;
+  sql
+  \dt
+  
 
+ Xem cấu trúc bảng cụ thể (VD: users):
 
-wweb 
-
-http://127.0.0.1:8000/docs#/ => két nối tới FastAPI
-
-
-
-
+  sql
+  \d users
+  
 
 ---
 
-## ✅ Cách xử lý triệt để: đặt `client_encoding` = 'UTF8'
+ ✅ Truy vấn dữ liệu
 
-### ✳️ **Cách 1: Thêm lệnh ngay sau khi đăng nhập**
+ Xác nhận dữ liệu trong bảng:
 
-Khi đã vào `psql`, gõ:
+  sql
+  SELECT COUNT() FROM user_profiles;
+  
 
-```sql
+ Hiển thị thông tin ngắn gọn:
+
+  sql
+  SELECT id, full_name, user_id FROM user_profiles;
+  
+
+---
+
+ 🔐 Xử lý lỗi mã hóa ký tự (Unicode/UTF8)
+
+ ✳️ Cách 1: Cấu hình sau khi đăng nhập vào psql
+
+sql
 SET client_encoding = 'UTF8';
-```
 
-Rồi **chạy lại câu lệnh SELECT**:
 
-```sql
-SELECT * FROM users WHERE firebase_uid = 'Ct9lxHivV9eOTwyza6ZrkReNH7v2';
-```
+Rồi chạy lại câu lệnh:
+
+sql
+SELECT  FROM users WHERE firebase_uid = 'Ct9lxHivV9eOTwyza6ZrkReNH7v2';
+
 
 ---
 
-### ✳️ **Cách 2: Thêm biến môi trường khi khởi động**
+ ✳️ Cách 2: Thiết lập biến môi trường trước khi vào psql
 
-Trên dòng lệnh CMD (chưa vào `psql`), bạn gõ:
-
-```bash
+bash
 set PGCLIENTENCODING=utf8
-```
-
-Rồi đăng nhập lại:
-
-```bash
 psql -U admin -d mental_health_app
-```
+
 
 ---
 
-### 💡 Vì sao có lỗi này?
+ 💡 Vì sao có lỗi này?
 
-* Dữ liệu trong bảng có **ký tự Unicode (Tiếng Việt)** như “ệ”.
-* `psql` mặc định lấy mã hóa từ môi trường hệ thống (Windows thường là `WIN1252`), không khớp với `UTF8` của PostgreSQL.
+ Bảng chứa ký tự Unicode (Tiếng Việt) như “ệ”, “đ”, “ọ”,...
+ Terminal Windows mặc định dùng mã hóa WIN1252 gây lỗi khi không trùng với UTF8.
 
 ---
 
-Bạn thử cách 1 trước nhé, nếu ổn rồi thì mình sẽ hướng dẫn thêm về insert hoặc test API `/user/firebase` để lưu người dùng.
+ 👥 Giao diện đăng ký / đăng nhập
 
+Link tham khảo giao diện:
+🔗 [ChatGPT Share Link](https://chatgpt.com/share/685bfd36-d014-8010-bdd8-86db07450109)
+
+---
+
+ 🧪 Gợi ý tiếp theo
+
+ Test API /user/firebase để lưu người dùng mới sau khi xác thực Firebase.
+ Thêm hướng dẫn insert dữ liệu test nếu cần (có thể bổ sung sau tùy mục tiêu dự án).
+
+---
+
+Nếu bạn muốn mình chuyển thành file PDF, markdown, hoặc tạo checklist công việc (task checklist), cứ nói nhé.

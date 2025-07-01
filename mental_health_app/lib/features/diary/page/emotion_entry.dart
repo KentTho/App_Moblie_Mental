@@ -7,7 +7,6 @@ import 'package:mental_health_app/features/diary/page/search_field.dart';
 import 'package:mental_health_app/features/diary/widge/note_icon_button.dart';
 import 'package:mental_health_app/features/diary/widge/note_icon_button_outlined.dart';
 import 'package:mental_health_app/features/home/homepage.dart';
-import 'package:flutter_quill/flutter_quill.dart';
 import '../widge/note_grid.dart';
 import '../widge/notes_list.dart';
 

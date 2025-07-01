@@ -42,7 +42,7 @@ class _HomepageState extends State<Homepage> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  signout() async {
+  Future<void> signout() async {
     await FirebaseAuth.instance.signOut();
     if (mounted) {
       Navigator.pushReplacement(
