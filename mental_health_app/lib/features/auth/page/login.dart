@@ -1,12 +1,9 @@
 import 'dart:convert';
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:mental_health_app/features/auth/page/register_page.dart';
 import 'package:mental_health_app/features/home/homepage.dart';
-import 'package:dio/dio.dart';
-import '../../../firebase_options.dart';
 import 'package:http/http.dart' as http;
 
 

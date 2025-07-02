@@ -62,7 +62,7 @@ class TagShowRow extends StatelessWidget {
                   ),
                 NoteIconButton(
                   icon: FontAwesomeIcons.circlePlus,
-                  size: 20,
+                  size: 22,
                   onPressed: onAddTag,
                 ),
               ],

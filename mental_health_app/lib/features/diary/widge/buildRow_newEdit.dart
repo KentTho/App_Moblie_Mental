@@ -21,7 +21,7 @@ class BuildRowNewEdit extends StatelessWidget {
             flex: 3,
             child: Text(
               label,
-              style: TextStyle(
+              style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 color: gray500,
               ),
