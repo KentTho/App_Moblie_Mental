@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:mental_health_app/features/auth/page/verifyemail.dart';
 import 'package:mental_health_app/features/home/homepage.dart';
 import 'package:mental_health_app/features/auth/page/login.dart';
 
@@ -20,8 +21,13 @@ class Wrapper extends StatelessWidget {
 
         // ✅ Đã đăng nhập
         if (snapshot.hasData && snapshot.data != null) {
-          return const Homepage();
+          if (snapshot.data!.emailVerified) {
+            return const Homepage(); // Email đã xác thực
+          } else {
+            return const VerifyEmailPage(); // Chưa xác thực
+          }
         }
+
 
         // ❌ Chưa đăng nhập
         return const Login();

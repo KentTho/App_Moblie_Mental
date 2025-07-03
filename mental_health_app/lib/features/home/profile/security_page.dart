@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:mental_health_app/features/home/profile/profile_page.dart';
 
-import 'change_password_page.dart';
+import '../../auth/page/change_password_page.dart';
 
 class SecurityPage extends StatefulWidget {
   const SecurityPage({super.key});
@@ -143,6 +143,27 @@ class _SecurityPageState extends State<SecurityPage> {
       ),
     );
   }
+
+  // ✅ Đã thêm:
+Future<void> sendVerificationEmail() async {
+  final user = FirebaseAuth.instance.currentUser;
+  await user?.reload(); // Làm mới thông tin user từ Firebase
+  final refreshedUser = FirebaseAuth.instance.currentUser;
+
+  if (refreshedUser != null && refreshedUser.emailVerified) {
+    _showSnackBar('Email đã được xác thực trước đó!');
+    // ✅ BONUS: Gửi thông tin xác thực đến BE nếu chưa update
+    await _updateVerificationStatus(true);
+  } else if (refreshedUser != null) {
+    try {
+      await refreshedUser.sendEmailVerification();
+      _showSnackBar('Email xác thực đã được gửi');
+    } catch (e) {
+      _showSnackBar('Lỗi gửi email xác thực: ${e.toString()}', isError: true);
+    }
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -299,6 +320,17 @@ class _SecurityPageState extends State<SecurityPage> {
                         ),
 
                         const SizedBox(height: 30),
+
+                        // ✅ Đã thêm: Gửi email xác thực
+                        _buildSecurityCard(
+                          icon: Icons.mark_email_read_rounded,
+                          title: "Gửi email xác thực",
+                          subtitle: "Gửi liên kết xác thực đến email của bạn",
+                          colors: [Color(0xFF42A5F5), Color(0xFF64B5F6)],
+                          onTap: sendVerificationEmail,
+                        ),
+
+                        const SizedBox(height: 15),
 
                         // Danger Zone
                         Container(

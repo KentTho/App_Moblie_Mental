@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:mental_health_app/features/auth/page/forgot.dart';
 import 'package:mental_health_app/features/auth/page/register_page.dart';
 import 'package:mental_health_app/features/home/homepage.dart';
 import 'package:http/http.dart' as http;
@@ -24,12 +26,6 @@ class _LoginState extends State<Login> {
         email: email.text,
         password: password.text,
       );
-
-      // ✅ Chuyển sang trang Homepage sau khi đăng nhập thành công
-      // Navigator.pushReplacement(
-      //   context,
-      //   MaterialPageRoute(builder: (_) => const Homepage()),
-      // );
 
       if (FirebaseAuth.instance.currentUser != null) {
         // Đã đăng nhập → sang Homepage
@@ -66,6 +62,34 @@ class _LoginState extends State<Login> {
 
   }
 
+  // Future<void> forgotPassword() async {
+  //   if (email.text.isEmpty) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text('Please enter your email address'),
+  //         backgroundColor: Colors.orange,
+  //       ),
+  //     );
+  //     return;
+  //   }
+
+  //   try {
+  //     await FirebaseAuth.instance.sendPasswordResetEmail(email: email.text);
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text('Password reset email sent!'),
+  //         backgroundColor: Color(0xFF4CAF50),
+  //       ),
+  //     );
+  //   } catch (e) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text('Error: ${e.toString()}'),
+  //         backgroundColor: Colors.red,
+  //       ),
+  //     );
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -145,7 +169,26 @@ class _LoginState extends State<Login> {
                         ),
                       ),
                     ),
-                    SizedBox(height: 24),
+                    
+                    // Forgot Password Link
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () {
+                          Get.to(Forgot());
+                        },
+                        child: Text(
+                          "Forgot Password?",
+                          style: TextStyle(
+                            color: Color(0xFF2E7D32),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                    
+                    SizedBox(height: 8),
 
                     SizedBox(
                       width: double.infinity,
@@ -170,18 +213,106 @@ class _LoginState extends State<Login> {
                       ),
                     ),
 
+                    SizedBox(height: 16),
+
+                    // OR Divider
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Divider(
+                            thickness: 1,
+                            color: Colors.grey.shade300,
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            "OR",
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Divider(
+                            thickness: 1,
+                            color: Colors.grey.shade300,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    SizedBox(height: 16),
+
+                    // Sign Up Now Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
+                        onPressed: () {
+                          Get.to(RegisterPage());
+                        },
+                        style: OutlinedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          side: BorderSide(color: Color(0xFF4CAF50), width: 2),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.person_add_outlined,
+                              color: Color(0xFF4CAF50),
+                              size: 20,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              "SIGN UP NOW",
+                              style: TextStyle(
+                                color: Color(0xFF4CAF50),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    SizedBox(height: 8),
+
+                    // Alternative text link
                     TextButton(
                       onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (_) => const RegisterPage()),
-                        );
+                        // Navigator.pushReplacement(
+                        //   context,
+                        //   MaterialPageRoute(builder: (_) => const RegisterPage()),
+                        // );
+                        Get.to(RegisterPage());
                       },
-                      child: Text(
-                        "Don't have an account? Register",
-                        style: TextStyle(color: Color(0xFF2E7D32)),
+                      child: RichText(
+                        text: TextSpan(
+                          style: TextStyle(fontSize: 14),
+                          children: [
+                            TextSpan(
+                              text: "Don't have an account? ",
+                              style: TextStyle(color: Colors.grey.shade600),
+                            ),
+                            TextSpan(
+                              text: "Register here",
+                              style: TextStyle(
+                                color: Color(0xFF2E7D32),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    )
+                    ),
 
                   ],
                 ),

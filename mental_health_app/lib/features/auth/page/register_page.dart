@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:mental_health_app/features/auth/page/login.dart';
 import 'package:dio/dio.dart';
+import 'package:mental_health_app/features/auth/page/verifyemail.dart';
 
 
 class RegisterPage extends StatefulWidget {
@@ -26,25 +27,11 @@ class _RegisterPageState extends State<RegisterPage> {
       );
 
       final user = FirebaseAuth.instance.currentUser;
-
-
-
       // ✅ Cập nhật full name vào Firebase
       if (user != null) {
         await user.updateDisplayName(fullName.text); // 🟢 QUAN TRỌNG!
         await user.reload(); // Refresh lại thông tin
       }
-
-      // ✅ Gửi email xác thực
-      // if (!user.emailVerified) {
-      //     await user.sendEmailVerification();
-      //     ScaffoldMessenger.of(context).showSnackBar(
-      //       SnackBar(
-      //       content: Text('Email xác thực đã được gửi đến ${user.email}'),
-      //     ),
-      //   );
-      // }
-
       // ✅ Gửi thông tin về backend (để lưu vào PostgreSQL)
       if (user != null) {
         final dio = Dio();
@@ -71,6 +58,13 @@ class _RegisterPageState extends State<RegisterPage> {
         SnackBar(content: Text('Error: ${e.toString()}')),
       );
     }
+
+    // ✅ Chuyển sang trang VerifyEmailPage thay vì Login
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const VerifyEmailPage()),
+    );
+
   }
 
   @override
