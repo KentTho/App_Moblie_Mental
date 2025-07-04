@@ -9,6 +9,12 @@ from src.models.user_profile import UserProfile
 from pydantic import BaseModel
 from typing import Optional
 from uuid import UUID
+from firebase_admin import auth
+from fastapi import Body
+
+from src.services.firebase import verify_firebase_token
+
+# Nếu bạn đặt verify_firebase_token ở file khác, cập nhật đúng đường dẫn
 router = APIRouter(prefix="/user", tags=["User"])
 
 
@@ -125,17 +131,6 @@ def get_user_by_firebase_uid(uid: str, db: Session = Depends(get_db)):
     )
 
 
-# --- UPDATE VERIFIED STATUS ---
-@router.put("/update-verified")
-def update_verified(payload: UpdateVerified, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.firebase_uid == payload.uid).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    user.is_verified = payload.is_verified
-    db.commit()
-    return {"message": "Verification status updated"}
-
 
 # --- UPDATE PROFILE ---
 @router.put("/update-profile")
@@ -182,3 +177,29 @@ def delete_user(uid: str, db: Session = Depends(get_db)):
     db.delete(user)
     db.commit()
     return {"message": "User deleted"}
+
+
+# --- UPDATE VERIFIED STATUS ---
+# --- UPDATE VERIFIED STATUS ---
+@router.put("/update-verified")
+def update_verified(
+    payload: UpdateVerified,
+    db: Session = Depends(get_db),
+    firebase_user=Depends(verify_firebase_token),  # ✅ Middleware kiểm tra Firebase token
+):
+    # ✅ Dùng uid từ token thay vì từ payload để tránh giả mạo
+    uid_from_token = firebase_user.get("uid")
+
+    # ✅ Kiểm tra email đã xác minh chưa
+    if not firebase_user.get("email_verified"):
+        raise HTTPException(status_code=403, detail="Email is not verified on Firebase")
+
+    user = db.query(User).filter(User.firebase_uid == uid_from_token).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    user.is_verified = payload.is_verified
+    db.commit()
+    return {"message": "Verification status updated"}
+
+
