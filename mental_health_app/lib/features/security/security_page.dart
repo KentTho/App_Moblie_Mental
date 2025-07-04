@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:mental_health_app/features/home/profile/profile_page.dart';
 
-import '../../auth/page/change_password_page.dart';
+import '../auth/page/change_password_page.dart';
 
 class SecurityPage extends StatefulWidget {
   const SecurityPage({super.key});
@@ -23,9 +23,18 @@ class _SecurityPageState extends State<SecurityPage> {
     _currentUser = FirebaseAuth.instance.currentUser;
   }
 
-  Future<void> _updateVerificationStatus(bool isVerified) async {
+    Future<void> _updateVerificationStatus(bool isVerified) async {
     if (_currentUser == null) {
       _showSnackBar('Không tìm thấy người dùng', isError: true);
+      return;
+    }
+
+    // ✅ Luôn refresh user trước để kiểm tra trạng thái email
+    await _currentUser!.reload();
+    final refreshedUser = FirebaseAuth.instance.currentUser;
+
+    if (isVerified && (refreshedUser == null || !refreshedUser.emailVerified)) {
+      _showSnackBar('Email của bạn chưa được xác thực trên Firebase.', isError: true);
       return;
     }
 
@@ -44,6 +53,8 @@ class _SecurityPageState extends State<SecurityPage> {
 
       if (response.statusCode == 200) {
         _showSnackBar('Cập nhật trạng thái xác thực thành công!');
+      } else {
+        _showSnackBar('Lỗi máy chủ: ${response.statusCode}', isError: true);
       }
     } catch (e) {
       _showSnackBar('Lỗi cập nhật trạng thái: ${e.toString()}', isError: true);
@@ -293,7 +304,17 @@ Future<void> sendVerificationEmail() async {
                           title: "Xác thực tài khoản",
                           subtitle: "Cập nhật trạng thái xác thực",
                           colors: [Color(0xFF4CAF50), Color(0xFF66BB6A)],
-                          onTap: () => _updateVerificationStatus(true),
+                          onTap: () async {
+                            final user = FirebaseAuth.instance.currentUser;
+                            await user?.reload(); // refresh trạng thái mới nhất từ Firebase
+                            final refreshedUser = FirebaseAuth.instance.currentUser;
+
+                            if (refreshedUser != null && refreshedUser.emailVerified) {
+                              await _updateVerificationStatus(true);
+                            } else {
+                              _showSnackBar('Bạn chưa xác thực email. Vui lòng kiểm tra hộp thư đến.', isError: true);
+                            }
+                          },
                         ),
 
                         const SizedBox(height: 15),

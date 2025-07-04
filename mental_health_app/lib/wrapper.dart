@@ -27,8 +27,6 @@ class Wrapper extends StatelessWidget {
             return const VerifyEmailPage(); // Chưa xác thực
           }
         }
-
-
         // ❌ Chưa đăng nhập
         return const Login();
       },

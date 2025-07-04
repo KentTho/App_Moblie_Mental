@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mental_health_app/features/auth/page/forgot.dart';
 import 'package:mental_health_app/features/auth/page/register_page.dart';
 import 'package:mental_health_app/features/home/homepage.dart';
@@ -20,7 +21,13 @@ class _LoginState extends State<Login> {
   TextEditingController email = TextEditingController();
   TextEditingController password = TextEditingController();
 
+  bool isLoading = false;
+
+
   Future<void> signIn() async {
+    setState(() {
+      isLoading = true;
+    });
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email.text,
@@ -33,8 +40,10 @@ class _LoginState extends State<Login> {
       } else {
         // Chưa đăng nhập → ở lại LoginPage
       }
-
+    }on FirebaseAuthException catch(e){
+      Get.snackbar("Error msg", e.code);
     } catch (e) {
+      Get.snackbar("Error msg", e.toString());
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Đăng nhập thất bại: ${e.toString()}')),
       );
@@ -59,41 +68,77 @@ class _LoginState extends State<Login> {
         print("Lỗi: ${response.body}");
       }
     }
-
+    setState(() {
+      isLoading = false;
+    });
   }
 
-  // Future<void> forgotPassword() async {
-  //   if (email.text.isEmpty) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(
-  //         content: Text('Please enter your email address'),
-  //         backgroundColor: Colors.orange,
-  //       ),
-  //     );
-  //     return;
-  //   }
 
-  //   try {
-  //     await FirebaseAuth.instance.sendPasswordResetEmail(email: email.text);
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(
-  //         content: Text('Password reset email sent!'),
-  //         backgroundColor: Color(0xFF4CAF50),
-  //       ),
-  //     );
-  //   } catch (e) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(
-  //         content: Text('Error: ${e.toString()}'),
-  //         backgroundColor: Colors.red,
-  //       ),
-  //     );
-  //   }
-  // }
+
+  Future<void> loginWithGoogle() async {
+  try {
+    final GoogleAuthProvider googleProvider = GoogleAuthProvider();
+
+    await FirebaseAuth.instance.signInWithProvider(googleProvider);
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final response = await http.post(
+        Uri.parse("http://10.0.2.2:8000/user/firebase"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "email": user.email,
+          "uid": user.uid,
+          "full_name": user.displayName ?? "Google User",
+        }),
+      );
+      if (response.statusCode == 200) {
+        print("Đã lưu user Google vào PostgreSQL");
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const Homepage()));
+      } else {
+        print("Lỗi Google login: ${response.body}");
+      }
+    }
+  } catch (e) {
+    print("Lỗi đăng nhập Google: $e");
+    Get.snackbar("Google Sign-In Failed", e.toString());
+  }
+}
+
+
+Future<void> loginWithGitHub() async {
+  try {
+    GithubAuthProvider githubProvider = GithubAuthProvider();
+    await FirebaseAuth.instance.signInWithProvider(githubProvider);
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final response = await http.post(
+        Uri.parse("http://10.0.2.2:8000/user/firebase"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "email": user.email,
+          "uid": user.uid,
+          "full_name": user.displayName ?? "GitHub User",
+        }),
+      );
+      if (response.statusCode == 200) {
+        print("Đã lưu user GitHub vào PostgreSQL");
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const Homepage()));
+      } else {
+        print("Lỗi GitHub login: ${response.body}");
+      }
+    }
+  } catch (e) {
+    print("Lỗi đăng nhập GitHub: $e");
+    Get.snackbar("GitHub Sign-In Failed", e.toString());
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return isLoading ? Center(child: CircularProgressIndicator(),) : Scaffold(
       backgroundColor: Colors.white,
       body: Container(
         decoration: BoxDecoration(
@@ -245,6 +290,55 @@ class _LoginState extends State<Login> {
                     ),
 
                     SizedBox(height: 16),
+
+                    // Google Login Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () => loginWithGoogle(),
+                        icon: Image.asset(
+                          'assets/images/google.png', // bạn cần có ảnh logo Google tại đây
+                          height: 20,
+                        ),
+                        label: Text(
+                          "Sign in with Google",
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black87,
+                          elevation: 3,
+                          padding: EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          side: BorderSide(color: Colors.grey.shade300),
+                        ),
+                      ),
+                    ),
+
+                    SizedBox(height: 12),
+
+                    // GitHub Login Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () => loginWithGitHub(),
+                        icon: Icon(Icons.code), // bạn có thể thay bằng logo GitHub nếu có ảnh
+                        label: Text(
+                          "Sign in with GitHub",
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black,
+                          foregroundColor: Colors.white,
+                          elevation: 3,
+                          padding: EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ),
+
+                    SizedBox(height: 16),
+
 
                     // Sign Up Now Button
                     SizedBox(

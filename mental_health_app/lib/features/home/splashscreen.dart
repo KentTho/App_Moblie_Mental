@@ -1,51 +1,7 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_quill/flutter_quill.dart';
-import 'package:mental_health_app/wrapper.dart';
-import 'firebase_options.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get/get.dart';
+import 'package:mental_health_app/features/auth/page/login.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    print('✅ Firebase initialized!');
-  } catch (e) {
-    print('❌ Firebase init failed: $e');
-  }
-
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return GetMaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Mental Health App',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const SplashScreen(), // ✅ Chuyển sang Splash trước
-      localizationsDelegates: const [
-        FlutterQuillLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [
-        Locale('en'),
-      ],
-    );
-  }
-}
-
-// ✅ SplashScreen tích hợp tại đây hoặc bạn có thể tách file splash_screen.dart
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -72,8 +28,9 @@ class _SplashScreenState extends State<SplashScreen>
       curve: Curves.elasticOut,
     );
 
+    // Chuyển sau 3 giây
     Future.delayed(const Duration(seconds: 3), () {
-      Get.off(() => const Wrapper());
+      Get.off(() => const Login());
     });
   }
 
@@ -86,7 +43,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF43A047),
+      backgroundColor: const Color(0xFF43A047), // Màu nền chính xanh lá
       body: Center(
         child: ScaleTransition(
           scale: _scaleAnimation,
@@ -107,6 +64,7 @@ class _SplashScreenState extends State<SplashScreen>
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
+                // Icon M cách điệu
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
@@ -123,10 +81,11 @@ class _SplashScreenState extends State<SplashScreen>
                   ),
                 ),
                 const SizedBox(width: 16),
+                // Text Mental Health
                 const Text(
                   "Mental Health",
                   style: TextStyle(
-                    fontFamily: 'ArialRoundedMTBold',
+                    fontFamily: 'ArialRoundedMTBold', // iOS-like font
                     fontSize: 26,
                     color: Colors.white,
                     letterSpacing: 1,

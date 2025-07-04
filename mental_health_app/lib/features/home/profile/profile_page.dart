@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:mental_health_app/features/home/profile/edit_profile_page.dart';
-import 'package:mental_health_app/features/home/profile/security_page.dart';
+import 'package:mental_health_app/features/security/security_page.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:cached_network_image/cached_network_image.dart';

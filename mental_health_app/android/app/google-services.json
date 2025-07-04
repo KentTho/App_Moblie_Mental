@@ -12,7 +12,20 @@
           "package_name": "com.example.mental_health_app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "160626796012-012sk9u9p3ih971ac3cr1ousjdfjh3m1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.mental_health_app",
+            "certificate_hash": "4dbb7f73cf7ad78c1ac3b6a451a2cfd21b70dcd3"
+          }
+        },
+        {
+          "client_id": "160626796012-o47jjv56e8fr9ravk6hb9skjcbklrlsu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDw5Qa7o4Ug0YsLKcsVa9ETdtvkkfikbYI"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "160626796012-o47jjv56e8fr9ravk6hb9skjcbklrlsu.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "160626796012-4llo1ntjdcpfv5kpsnu66f4e0chuvnvo.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.mentalHealthApp"
+              }
+            }
+          ]
         }
       }
     }
