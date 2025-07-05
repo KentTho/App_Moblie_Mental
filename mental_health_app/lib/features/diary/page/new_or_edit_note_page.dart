@@ -116,6 +116,7 @@ class _NewOrEditNotePageState extends State<NewOrEditNotePage> {
                   ),
                   border: InputBorder.none,
                 ),
+                canRequestFocus: !readOnly,
               ),
             ),
 

@@ -19,7 +19,7 @@ class _SignupState extends State<Signup> {
   TextEditingController password  = TextEditingController();
 
 
-  signUp()async{
+  Future<void> signUp()async{
     await FirebaseAuth.instance.signInWithEmailAndPassword(email: email.text, password: password.text);
     Get.offAll(Wrapper());
   }  

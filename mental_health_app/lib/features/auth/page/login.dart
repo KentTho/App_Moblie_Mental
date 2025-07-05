@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mental_health_app/features/auth/page/forgot.dart';
 import 'package:mental_health_app/features/auth/page/register_page.dart';
 import 'package:mental_health_app/features/home/homepage.dart';
@@ -25,35 +24,23 @@ class _LoginState extends State<Login> {
 
 
   Future<void> signIn() async {
-    setState(() {
-      isLoading = true;
-    });
-    try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: email.text,
-        password: password.text,
-      );
+  if (!mounted) return;
 
-      if (FirebaseAuth.instance.currentUser != null) {
-        // Đã đăng nhập → sang Homepage
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const Homepage()));
-      } else {
-        // Chưa đăng nhập → ở lại LoginPage
-      }
-    }on FirebaseAuthException catch(e){
-      Get.snackbar("Error msg", e.code);
-    } catch (e) {
-      Get.snackbar("Error msg", e.toString());
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Đăng nhập thất bại: ${e.toString()}')),
-      );
-    }
+  setState(() {
+    isLoading = true;
+  });
 
+  try {
+    await FirebaseAuth.instance.signInWithEmailAndPassword(
+      email: email.text,
+      password: password.text,
+    );
 
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
+      // Gửi thông tin người dùng lên server
       final response = await http.post(
-        Uri.parse("http://10.0.2.2:8000/user/firebase"), // Gửi về FastAPI
+        Uri.parse("http://10.0.2.2:8000/user/firebase"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
           "email": user.email,
@@ -67,18 +54,34 @@ class _LoginState extends State<Login> {
       } else {
         print("Lỗi: ${response.body}");
       }
+
+      if (!mounted) return;
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const Homepage()));
+      return; // tránh gọi setState sau Navigator
     }
-    setState(() {
-      isLoading = false;
-    });
+  } on FirebaseAuthException catch (e) {
+    if (!mounted) return;
+    Get.snackbar("Error msg", e.code);
+  } catch (e) {
+    if (!mounted) return;
+    Get.snackbar("Error msg", e.toString());
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Đăng nhập thất bại: ${e.toString()}')),
+    );
   }
+
+  if (!mounted) return;
+  setState(() {
+    isLoading = false;
+  });
+}
+
 
 
 
   Future<void> loginWithGoogle() async {
   try {
     final GoogleAuthProvider googleProvider = GoogleAuthProvider();
-
     await FirebaseAuth.instance.signInWithProvider(googleProvider);
 
     final user = FirebaseAuth.instance.currentUser;
@@ -92,23 +95,28 @@ class _LoginState extends State<Login> {
           "full_name": user.displayName ?? "Google User",
         }),
       );
+
       if (response.statusCode == 200) {
         print("Đã lưu user Google vào PostgreSQL");
+        if (!mounted) return;
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const Homepage()));
+        return;
       } else {
         print("Lỗi Google login: ${response.body}");
       }
     }
   } catch (e) {
+    if (!mounted) return;
     print("Lỗi đăng nhập Google: $e");
     Get.snackbar("Google Sign-In Failed", e.toString());
   }
 }
 
 
+
 Future<void> loginWithGitHub() async {
   try {
-    GithubAuthProvider githubProvider = GithubAuthProvider();
+    final GithubAuthProvider githubProvider = GithubAuthProvider();
     await FirebaseAuth.instance.signInWithProvider(githubProvider);
 
     final user = FirebaseAuth.instance.currentUser;
@@ -122,18 +130,23 @@ Future<void> loginWithGitHub() async {
           "full_name": user.displayName ?? "GitHub User",
         }),
       );
+
       if (response.statusCode == 200) {
         print("Đã lưu user GitHub vào PostgreSQL");
+        if (!mounted) return;
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const Homepage()));
+        return;
       } else {
         print("Lỗi GitHub login: ${response.body}");
       }
     }
   } catch (e) {
+    if (!mounted) return;
     print("Lỗi đăng nhập GitHub: $e");
     Get.snackbar("GitHub Sign-In Failed", e.toString());
   }
 }
+
 
 
   @override
@@ -291,53 +304,6 @@ Future<void> loginWithGitHub() async {
 
                     SizedBox(height: 16),
 
-                    // Google Login Button
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: () => loginWithGoogle(),
-                        icon: Image.asset(
-                          'assets/images/google.png', // bạn cần có ảnh logo Google tại đây
-                          height: 20,
-                        ),
-                        label: Text(
-                          "Sign in with Google",
-                          style: TextStyle(fontSize: 16),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black87,
-                          elevation: 3,
-                          padding: EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          side: BorderSide(color: Colors.grey.shade300),
-                        ),
-                      ),
-                    ),
-
-                    SizedBox(height: 12),
-
-                    // GitHub Login Button
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: () => loginWithGitHub(),
-                        icon: Icon(Icons.code), // bạn có thể thay bằng logo GitHub nếu có ảnh
-                        label: Text(
-                          "Sign in with GitHub",
-                          style: TextStyle(fontSize: 16),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black,
-                          foregroundColor: Colors.white,
-                          elevation: 3,
-                          padding: EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                      ),
-                    ),
-
-                    SizedBox(height: 16),
 
 
                     // Sign Up Now Button
@@ -377,6 +343,79 @@ Future<void> loginWithGitHub() async {
                       ),
                     ),
 
+                    SizedBox(height: 16),
+                    
+                    // Google & GitHub as Floating Circle Buttons
+                    // Google & GitHub as Floating Circle Buttons
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Google Button
+                        GestureDetector(
+                          onTap: () => loginWithGoogle(),
+                          child: Container(
+                            width: 60,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                colors: [Colors.white.withOpacity(0.9), Colors.grey.shade200],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 12,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: Image.asset(
+                                'assets/images/google.png',
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        SizedBox(width: 24),
+
+                        // GitHub Button
+                        GestureDetector(
+                          onTap: () => loginWithGitHub(),
+                          child: Container(
+                            width: 60,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                colors: [Colors.black87, Colors.black54],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black45,
+                                  blurRadius: 12,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Center(
+                              child: Icon(
+                                Icons.code,
+                                color: Colors.white,
+                                size: 28,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
                     SizedBox(height: 8),
 
                     // Alternative text link
@@ -407,7 +446,6 @@ Future<void> loginWithGitHub() async {
                         ),
                       ),
                     ),
-
                   ],
                 ),
               ),

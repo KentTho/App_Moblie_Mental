@@ -19,7 +19,8 @@ class NoteToolbar extends StatelessWidget {
       decoration: BoxDecoration(
         color: white, 
         border: Border.all(
-          color: primaryColor,strokeAlign: BorderSide.strokeAlignOutside),
+          color: primaryColor,
+          strokeAlign: BorderSide.strokeAlignOutside),
           borderRadius: BorderRadius.circular(8),
           boxShadow: const [BoxShadow(color: primaryColor, offset: Offset(4, 4))]
       ),

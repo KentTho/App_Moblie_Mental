@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:mental_health_app/change_notifiers/notes_provider.dart';
 import 'package:mental_health_app/features/diary/core/constants.dart';
 import 'package:mental_health_app/features/diary/page/new_or_edit_note_page.dart';
 import 'package:mental_health_app/features/diary/widge/note_fab.dart';
@@ -7,6 +8,7 @@ import 'package:mental_health_app/features/diary/page/search_field.dart';
 import 'package:mental_health_app/features/diary/widge/note_icon_button.dart';
 import 'package:mental_health_app/features/diary/widge/note_icon_button_outlined.dart';
 import 'package:mental_health_app/features/home/homepage.dart';
+import 'package:provider/provider.dart';
 import '../widge/note_grid.dart';
 import '../widge/notes_list.dart';
 
@@ -74,96 +76,86 @@ class _EmotionEntryState extends State<EmotionEntry> {
           },
         ),
 
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              // Ô tìm kiếm
-              const SearchField(),
-
-              const SizedBox(height: 8),
-
-              // Hàng chứa nút sắp xếp, dropdown lọc, chuyển chế độ grid/list
-              Row(
+        body: Consumer<NotesProvider>(
+          builder: (context, NotesProvider, child) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Column(
                 children: [
-                  // Nút đổi thứ tự sắp xếp
-                  NoteIconButton(
-                    icon: isDescending
-                        ? FontAwesomeIcons.arrowDown
-                        : FontAwesomeIcons.arrowUp,
-                    size: 18,
-                    onPressed: () {
-                      setState(() {
-                        isDescending = !isDescending;
-                      });
-                    },
-                  ),
-
-                  const SizedBox(width: 16),
-
-                  // Dropdown chọn tiêu chí sắp xếp
-                  DropdownButton(
-                    value: dropdownValue,
-                    underline: const SizedBox.shrink(),
-                    borderRadius: BorderRadius.circular(16),
-                    isDense: true,
-                    icon: const Padding(
-                      padding: EdgeInsets.only(left: 16.0),
-                      child: FaIcon(
-                        FontAwesomeIcons.arrowDownWideShort,
+                  // Ô tìm kiếm
+                  const SearchField(),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      NoteIconButton(
+                        icon: isDescending
+                            ? FontAwesomeIcons.arrowDown
+                            : FontAwesomeIcons.arrowUp,
                         size: 18,
-                        color: gray700,
+                        onPressed: () {
+                          setState(() {
+                            isDescending = !isDescending;
+                          });
+                        },
                       ),
-                    ),
-                    items: dropdownOptions.map((e) {
-                      return DropdownMenuItem(
-                        value: e,
-                        child: Row(
-                          children: [
-                            Text(e),
-                            if (e == dropdownValue) ...[
-                              const SizedBox(width: 8),
-                              Icon(Icons.check, color: primaryColor),
-                            ],
-                          ],
+                      const SizedBox(width: 16),
+                      DropdownButton(
+                        value: dropdownValue,
+                        underline: const SizedBox.shrink(),
+                        borderRadius: BorderRadius.circular(16),
+                        isDense: true,
+                        icon: const Padding(
+                          padding: EdgeInsets.only(left: 16.0),
+                          child: FaIcon(
+                            FontAwesomeIcons.arrowDownWideShort,
+                            size: 18,
+                            color: gray700,
+                          ),
                         ),
-                      );
-                    }).toList(),
-                    selectedItemBuilder: (context) => dropdownOptions
-                        .map((e) => Text(e))
-                        .toList(),
-                    onChanged: (newValue) {
-                      setState(() {
-                        dropdownValue = newValue!;
-                      });
-                    },
+                        items: dropdownOptions.map((e) {
+                          return DropdownMenuItem(
+                            value: e,
+                            child: Row(
+                              children: [
+                                Text(e),
+                                if (e == dropdownValue) ...[
+                                  const SizedBox(width: 8),
+                                  Icon(Icons.check, color: primaryColor),
+                                ],
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                        selectedItemBuilder: (context) =>
+                            dropdownOptions.map((e) => Text(e)).toList(),
+                        onChanged: (newValue) {
+                          setState(() {
+                            dropdownValue = newValue!;
+                          });
+                        },
+                      ),
+                      const Spacer(),
+                      NoteIconButton(
+                        icon: isGrid
+                            ? FontAwesomeIcons.tableCellsLarge
+                            : FontAwesomeIcons.bars,
+                        size: 18,
+                        onPressed: () {
+                          setState(() {
+                            isGrid = !isGrid;
+                          });
+                        },
+                      ),
+                    ],
                   ),
-
-                  const Spacer(),
-
-                  // Nút chuyển đổi giữa chế độ Grid và List
-                  NoteIconButton(
-                    icon: isGrid
-                        ? FontAwesomeIcons.tableCellsLarge
-                        : FontAwesomeIcons.bars,
-                    size: 18,
-                    onPressed: () {
-                      setState(() {
-                        isGrid = !isGrid;
-                      });
-                    },
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: isGrid ? const NotesGrid() : const NotesList(),
                   ),
                 ],
               ),
-
-              const SizedBox(height: 8),
-
-              // Hiển thị danh sách note dạng lưới hoặc danh sách
-              Expanded(
-                child: isGrid ? const NotesGrid() : const NotesList(),
-              ),
-            ],
-          ),
+            );
+          }
         ),
       ),
     );
