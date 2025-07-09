@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:mental_health_app/features/diary/page/new_or_edit_note_page.dart';
+import 'package:mental_health_app/models/note.dart';
 
 import '../core/constants.dart';
 import '../core/constants.dart' as Colors;
@@ -8,11 +9,12 @@ import '../core/constants.dart' as Colors;
 class NoteCard extends StatelessWidget {
   const NoteCard({
     required this.isInGrid,
+    required this.note,
     super.key,
   });
 
   final bool isInGrid;
-
+  final Note note;
   @override
   Widget build(BuildContext context) {
     return GestureDetector(

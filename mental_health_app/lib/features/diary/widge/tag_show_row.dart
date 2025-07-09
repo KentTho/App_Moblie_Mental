@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:mental_health_app/features/diary/core/constants.dart';
+import 'package:mental_health_app/features/diary/widge/dialog_tags_card.dart';
+import 'package:mental_health_app/features/diary/widge/new_notes_dialog.dart';
 import 'package:mental_health_app/features/diary/widge/note_icon_button.dart';
 
-class TagShowRow extends StatelessWidget {
+class TagShowRow extends StatefulWidget {
   final String label;
   final List<String> tags;
-  final VoidCallback onAddTag;
+  final void Function(String tag) onAddTag; // ✅ sửa từ VoidCallback → truyền tag
 
   const TagShowRow({
     super.key,
@@ -14,6 +16,20 @@ class TagShowRow extends StatelessWidget {
     required this.tags,
     required this.onAddTag,
   });
+
+  @override
+  State<TagShowRow> createState() => _TagShowRowState();
+}
+
+class _TagShowRowState extends State<TagShowRow> {
+  final TextEditingController _tagController = TextEditingController();
+
+  @override
+  void dispose() {
+    _tagController.dispose();
+    super.dispose();
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +42,7 @@ class TagShowRow extends StatelessWidget {
           Expanded(
             flex: 3,
             child: Text(
-              label,
+              widget.label,
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: gray500,
@@ -41,13 +57,13 @@ class TagShowRow extends StatelessWidget {
               runSpacing: 8,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                if (tags.isEmpty)
+                if (widget.tags.isEmpty)
                   const Text(
                     'No tags added',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   )
                 else
-                  ...tags.map(
+                  ...widget.tags.map(
                     (tag) => Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
@@ -60,16 +76,37 @@ class TagShowRow extends StatelessWidget {
                       ),
                     ),
                   ),
+
+                // ✅ Nút thêm tag
                 NoteIconButton(
                   icon: FontAwesomeIcons.circlePlus,
                   size: 22,
-                  onPressed: onAddTag,
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => DialogCard(
+                        onTagAdded: (String tag) {
+                          Navigator.pop(context);
+                          widget.onAddTag(tag);
+                        },
+                        child: NewNoteDiaLog(
+                          tagController: _tagController,
+                          onTagAdded: (String tag) {
+                            Navigator.pop(context);
+                            widget.onAddTag(tag);
+                          },
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
           ),
+
         ],
       ),
     );
   }
 }
+

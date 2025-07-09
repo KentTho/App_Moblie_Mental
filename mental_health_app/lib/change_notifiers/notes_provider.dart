@@ -1,14 +1,27 @@
+// lib/change_notifiers/notes_provider.dart
+
 import 'package:flutter/widgets.dart';
 import 'package:mental_health_app/models/note.dart';
+import 'package:mental_health_app/services/note_service.dart';
 
 class NotesProvider extends ChangeNotifier {
-  // ví dụ một state đơn giản
   final List<Note> _notes = [];
 
   List<Note> get notes => _notes;
 
-  void addNote(String note) {
-    _notes.add(note as Note);
+  Future<void> fetchNotes(String userId) async {
+    try {
+      final data = await NoteService.fetchNotes(userId);
+      _notes.clear();
+      _notes.addAll(data);
+      notifyListeners();
+    } catch (e) {
+      print("Lỗi khi fetch notes: $e");
+    }
+  }
+
+  Future<void> addNote(Note note) async {
+    _notes.add(note);
     notifyListeners();
   }
 

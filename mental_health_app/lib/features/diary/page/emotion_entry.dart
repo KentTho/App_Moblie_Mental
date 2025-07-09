@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:mental_health_app/change_notifiers/new_note_controller.dart';
 import 'package:mental_health_app/change_notifiers/notes_provider.dart';
 import 'package:mental_health_app/features/diary/core/constants.dart';
 import 'package:mental_health_app/features/diary/page/new_or_edit_note_page.dart';
+import 'package:mental_health_app/features/diary/widge/no_notes.dart';
 import 'package:mental_health_app/features/diary/widge/note_fab.dart';
 import 'package:mental_health_app/features/diary/page/search_field.dart';
 import 'package:mental_health_app/features/diary/widge/note_icon_button.dart';
 import 'package:mental_health_app/features/diary/widge/note_icon_button_outlined.dart';
 import 'package:mental_health_app/features/home/homepage.dart';
+import 'package:mental_health_app/models/note.dart';
 import 'package:provider/provider.dart';
 import '../widge/note_grid.dart';
 import '../widge/notes_list.dart';
@@ -16,7 +19,10 @@ class EmotionEntry extends StatefulWidget {
   const EmotionEntry({super.key});
 
   @override
+  
   State<EmotionEntry> createState() => _EmotionEntryState();
+
+
 }
 
 class _EmotionEntryState extends State<EmotionEntry> {
@@ -32,6 +38,8 @@ class _EmotionEntryState extends State<EmotionEntry> {
   // Hiển thị dạng lưới hoặc danh sách
   bool isGrid = true;
 
+
+
   @override
   Widget build(BuildContext context) {
     return Theme(
@@ -40,6 +48,7 @@ class _EmotionEntryState extends State<EmotionEntry> {
         scaffoldBackgroundColor: background,
       ),
       child: Scaffold(
+        
         appBar: AppBar(
           automaticallyImplyLeading: false,
           backgroundColor: Colors.transparent,
@@ -70,7 +79,10 @@ class _EmotionEntryState extends State<EmotionEntry> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const NewOrEditNotePage(isNewNote: true),
+                builder: (context) => 
+                ChangeNotifierProvider(
+                  create: (context) => NewNoteController(),
+                  child: const NewOrEditNotePage(isNewNote: true)),
               ),
             );
           },
@@ -78,7 +90,8 @@ class _EmotionEntryState extends State<EmotionEntry> {
 
         body: Consumer<NotesProvider>(
           builder: (context, NotesProvider, child) {
-            return Padding(
+            final List<Note> notes = NotesProvider.notes;
+            return notes.isEmpty ? const NoNotes() : Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Column(
                 children: [
@@ -150,7 +163,7 @@ class _EmotionEntryState extends State<EmotionEntry> {
                   ),
                   const SizedBox(height: 8),
                   Expanded(
-                    child: isGrid ? const NotesGrid() : const NotesList(),
+                    child: isGrid ? NotesGrid(notes: notes,) : NotesList(notes: notes,),
                   ),
                 ],
               ),
@@ -161,3 +174,4 @@ class _EmotionEntryState extends State<EmotionEntry> {
     );
   }
 }
+

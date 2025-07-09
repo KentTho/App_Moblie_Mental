@@ -20,8 +20,10 @@ void main() async {
   }
 
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => NotesProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => NotesProvider()),
+      ],
       child: const MyApp(),
     ),
   );
@@ -48,6 +50,8 @@ class MyApp extends StatelessWidget {
       supportedLocales: const [
         Locale('en'),
       ],
+
+
     );
   }
 }

@@ -4,7 +4,7 @@ from fastapi import FastAPI
 
 # Import route cho xác thực người dùng và nhật ký cảm xúc
 from src.routes import auth
-from src.routes import note_router
+from src.routes import notes
 
 # Import các models để SQLAlchemy nhận diện và tạo bảng
 from src.models.user import User
@@ -41,4 +41,5 @@ app.include_router(auth.router)  # (Dòng gốc của bạn - vẫn giữ nguyê
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])  # Có thể bỏ nếu trùng
 
 # 2. Route quản lý nhật ký cảm xúc
-app.include_router(note_router.router, prefix="/api/notes", tags=["Notes"])
+app.include_router(notes.router)
+app.include_router(notes.router, prefix="/api/notes", tags=["Notes"])
