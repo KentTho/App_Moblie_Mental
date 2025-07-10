@@ -81,8 +81,8 @@ class _TagShowRowState extends State<TagShowRow> {
                 NoteIconButton(
                   icon: FontAwesomeIcons.circlePlus,
                   size: 22,
-                  onPressed: () {
-                    showDialog(
+                  onPressed: () async {
+                    final String? tag = await showDialog<String>(
                       context: context,
                       builder: (context) => DialogCard(
                         onTagAdded: (String tag) {
@@ -98,6 +98,10 @@ class _TagShowRowState extends State<TagShowRow> {
                         ),
                       ),
                     );
+
+
+                    print('tag is: $tag');
+
                   },
                 ),
               ],

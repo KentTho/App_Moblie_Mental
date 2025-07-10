@@ -15,7 +15,7 @@ class DialogCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final TextEditingController _tagController = TextEditingController();
+    final TextEditingController tagController = TextEditingController();
 
     return Dialog(
       backgroundColor: Colors.white.withOpacity(0.95),

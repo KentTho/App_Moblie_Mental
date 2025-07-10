@@ -14,7 +14,7 @@ class NewNoteDiaLog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final TextEditingController _tagController = TextEditingController(); // ✅ Tạo tại đây
+    final TextEditingController tagController = TextEditingController(); // ✅ Tạo tại đây
     final GlobalKey<FormFieldState> tagkey = GlobalKey<FormFieldState>();
 
 
@@ -35,9 +35,10 @@ class NewNoteDiaLog extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        TextField(
+        TextFormField(
           key: tagkey,
-          controller: _tagController,
+          controller: tagController,
+          autofocus: true,
           maxLength: 16,
           decoration: InputDecoration(
             hintText: 'Enter tag (max 16 chars)',
@@ -48,7 +49,35 @@ class NewNoteDiaLog extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
             ),
+            isDense: true,
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: primaryColor),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: primaryColor),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.red),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.red),
+            )
           ),
+          validator: (value){
+            if(value!.trim().isEmpty){
+              return 'No Tags added';
+            }else if(value!.trim().length > 16){
+              return 'Tags should not be more than 16 characters';
+            }
+            return null;
+          },
+          onChanged: (newValue){
+            tagkey.currentState?.validate();
+          },
         ),
         const SizedBox(height: 16),
         SizedBox(
@@ -66,7 +95,10 @@ class NewNoteDiaLog extends StatelessWidget {
               elevation: 5,
             ),
             onPressed: () {
-              final newTag = _tagController.text.trim();
+              if (tagkey.currentState?.validate() ?? false){
+                  Navigator.pop(context, tagController.text.trim());
+              }
+              final newTag = tagController.text.trim();
               if (newTag.isNotEmpty && newTag.length <= 16) {
                 onTagAdded(newTag); // Gọi callback
               }
