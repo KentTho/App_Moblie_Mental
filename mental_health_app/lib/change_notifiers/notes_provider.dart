@@ -11,7 +11,7 @@ class NotesProvider extends ChangeNotifier {
 
   Future<void> fetchNotes(String userId) async {
     try {
-      final data = await NoteService.fetchNotes(userId);
+      final data = await NoteService.fetchNotes(userId); // truyền int
       _notes.clear();
       _notes.addAll(data);
       notifyListeners();
@@ -19,6 +19,7 @@ class NotesProvider extends ChangeNotifier {
       print("Lỗi khi fetch notes: $e");
     }
   }
+
 
   Future<void> addNote(Note note) async {
     _notes.add(note);

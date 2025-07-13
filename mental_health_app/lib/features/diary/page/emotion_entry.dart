@@ -39,6 +39,16 @@ class _EmotionEntryState extends State<EmotionEntry> {
   bool isGrid = true;
 
 
+@override
+void initState() {
+  super.initState();
+
+  // ✅ Gọi fetchNotes tại đây (userId = 1 ví dụ)
+  Future.microtask(() {
+    final provider = context.read<NotesProvider>();
+    provider.fetchNotes("1"); // Truyền đúng userId của người dùng đang đăng nhập
+  });
+}
 
   @override
   Widget build(BuildContext context) {
@@ -76,17 +86,22 @@ class _EmotionEntryState extends State<EmotionEntry> {
         // Nút tạo note mới
         floatingActionButton: NoteFab(
           onPressed: () {
+            final controller = NewNoteController();
+            controller.userId = "1"; // ✅ Giả sử đây là user hiện tại, cần truyền đúng ID
+
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => 
-                ChangeNotifierProvider(
-                  create: (context) => NewNoteController(),
-                  child: const NewOrEditNotePage(isNewNote: true)),
+                builder: (context) =>
+                  ChangeNotifierProvider.value(
+                    value: controller,
+                    child: const NewOrEditNotePage(isNewNote: true),
+                  ),
               ),
             );
           },
         ),
+
 
         body: Consumer<NotesProvider>(
           builder: (context, NotesProvider, child) {

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:mental_health_app/features/diary/page/new_or_edit_note_page.dart';
+import 'package:mental_health_app/features/diary/widge/note_tag.dart';
 import 'package:mental_health_app/models/note.dart';
+import 'package:mental_health_app/services/note_service.dart';
 
 import '../core/constants.dart';
 import '../core/constants.dart' as Colors;
@@ -23,10 +25,14 @@ class NoteCard extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const NewOrEditNotePage(isNewNote: false),
+            builder: (context) => NewOrEditNotePage(
+              isNewNote: false,
+              note: note, // 👈 truyền ghi chú vào
+            ),
           ),
         );
       },
+
 
       // 📦 Thẻ note (giao diện chính)
       child: Container(
@@ -49,8 +55,8 @@ class NoteCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // 📝 Tiêu đề ghi chú
-            const Text(
-              'This is going to be a title',
+            Text(
+              note.title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
@@ -66,27 +72,7 @@ class NoteCard extends StatelessWidget {
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: List.generate(
-                  3,
-                  (index) => Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      color: gray100,
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 2,
-                    ),
-                    margin: const EdgeInsets.only(right: 4),
-                    child: const Text(
-                      'First chip',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: gray700,
-                      ),
-                    ),
-                  ),
-                ),
+                children: note.tags.map((tag) => NoteTag(label: tag)).toList(),
               ),
             ),
 
@@ -96,15 +82,15 @@ class NoteCard extends StatelessWidget {
             if (isInGrid)
               Expanded(
                 child: Text(
-                  'Some content',
-                  maxLines: 3,
+                  note.content ?? '',
+                  maxLines: isInGrid ? 3 : null,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(color: gray700),
                 ),
               )
             else
-              const Text(
-                'Some content',
+              Text(
+                note.content ?? '',
                 style: TextStyle(color: gray700),
               ),
 
@@ -113,21 +99,32 @@ class NoteCard extends StatelessWidget {
             // 📅 Ngày tạo & 🗑️ Nút xóa
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
+              children:[
                 Text(
-                  '02 November',
-                  style: TextStyle(
+                    "${note.createdAt.day}/${note.createdAt.month}/${note.createdAt.year}",
+                    style: const TextStyle(
                     color: gray500,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 Spacer(),
-                FaIcon(
-                  FontAwesomeIcons.trash,
-                  size: 16,
-                  color: gray500,
-                ),
+                IconButton(
+                icon: const FaIcon(FontAwesomeIcons.trash, size: 16, color: gray500),
+                onPressed: () async {
+                  try {
+                    await NoteService.deleteNote(note.id!);
+                    // Sau khi xóa → gọi lại fetchNotes hoặc remove local
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("🗑️ Đã xóa ghi chú")),
+                    );
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("❌ Lỗi khi xoá: $e")),
+                    );
+                  }
+                },
+              )
               ],
             ),
           ],
@@ -136,3 +133,4 @@ class NoteCard extends StatelessWidget {
     );
   }
 }
+

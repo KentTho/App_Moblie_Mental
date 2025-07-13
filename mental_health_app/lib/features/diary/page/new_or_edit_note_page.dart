@@ -8,16 +8,19 @@ import 'package:mental_health_app/features/diary/widge/note_icon_button_outlined
 import 'package:mental_health_app/features/diary/widge/note_toolbar.dart';
 import 'package:mental_health_app/features/diary/widge/tag_show_row.dart';
 import 'package:mental_health_app/change_notifiers/notes_provider.dart';
+import 'package:mental_health_app/models/note.dart';
 import 'package:mental_health_app/services/note_service.dart';
 import 'package:provider/provider.dart';
 
 class NewOrEditNotePage extends StatefulWidget {
+  final bool isNewNote;
+  final Note? note;
+
   const NewOrEditNotePage({
     required this.isNewNote,
+    this.note,
     super.key,
   });
-
-  final bool isNewNote;
 
   @override
   State<NewOrEditNotePage> createState() => _NewOrEditNotePageState();
@@ -27,11 +30,7 @@ class _NewOrEditNotePageState extends State<NewOrEditNotePage> {
   late final NewNoteController newNoteController;
   late QuillController _controller;
   late FocusNode focusNode;
-
   final TextEditingController _titleController = TextEditingController();
-  final List<String> tags = [];
-
-  bool isInitialized = false;
 
   @override
   void initState() {
@@ -41,27 +40,35 @@ class _NewOrEditNotePageState extends State<NewOrEditNotePage> {
     _controller = QuillController.basic()..addListener(() {
       newNoteController.content = _controller.document;
     });
+
     focusNode = FocusNode();
 
-    // Nếu là ghi chú mới, cho phép chỉnh sửa và focus vào editor
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-    if (widget.isNewNote) {
-          focusNode.requestFocus();
-          newNoteController.readOnly = false;
-        }else{
-          newNoteController.readOnly = true;
-        }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.isNewNote) {
+        newNoteController.readOnly = false;
+        focusNode.requestFocus();
+      } else {
+        newNoteController.readOnly = true;
+      }
     });
-        // Thiết lập mặc định chế độ đọc
-        // newNoteController.readOnly = true;
-        // isInitialized = true;
+
+    if (!widget.isNewNote && widget.note != null) {
+      _titleController.text = widget.note!.title;
+      _controller = QuillController(
+        document: Document()..insert(0, widget.note!.content ?? ''),
+        selection: const TextSelection.collapsed(offset: 0),
+      );
+      for (var tag in widget.note!.tags) {
+        newNoteController.addTag(tag);
+      }
+    }
   }
 
   @override
   void dispose() {
     _controller.dispose();
     focusNode.dispose();
-    _titleController.dispose(); // Dọn dẹp bộ nhớ cho controller tiêu đề
+    _titleController.dispose();
     super.dispose();
   }
 
@@ -69,7 +76,6 @@ class _NewOrEditNotePageState extends State<NewOrEditNotePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // Nút quay lại
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
           child: NoteIconButtonOutlined(
@@ -77,8 +83,6 @@ class _NewOrEditNotePageState extends State<NewOrEditNotePage> {
             onPressed: () => Navigator.maybePop(context),
           ),
         ),
-
-        // Tiêu đề AppBar
         title: Text(widget.isNewNote ? 'New note' : 'Edit note'),
         titleTextStyle: const TextStyle(
           color: primaryColor,
@@ -86,18 +90,13 @@ class _NewOrEditNotePageState extends State<NewOrEditNotePage> {
           fontFamily: 'Fredo',
           fontWeight: FontWeight.bold,
         ),
-
-        // Các nút hành động: chỉnh sửa / xem và lưu
         actions: [
           Selector<NewNoteController, bool>(
-            selector: (context, controller) => controller.readOnly,
+            selector: (_, controller) => controller.readOnly,
             builder: (context, readOnly, _) => NoteIconButtonOutlined(
-              icon: readOnly
-                  ? FontAwesomeIcons.pen
-                  : FontAwesomeIcons.bookOpen,
+              icon: readOnly ? FontAwesomeIcons.pen : FontAwesomeIcons.bookOpen,
               onPressed: () {
                 newNoteController.readOnly = !readOnly;
-
                 if (newNoteController.readOnly) {
                   FocusScope.of(context).unfocus();
                 } else {
@@ -117,23 +116,20 @@ class _NewOrEditNotePageState extends State<NewOrEditNotePage> {
               if (content.isEmpty) return;
 
               try {
-                // ⚠️ Ghi chú: Thay '123' bằng userId thực tế
                 await NoteService.createNote(
-                  userId: '123',
+                  userId: newNoteController.userId,
                   title: title,
                   content: content,
-                  tags: tags,
+                  tags: newNoteController.tags,
                 );
 
-                // Cập nhật lại danh sách ghi chú
-                await Provider.of<NotesProvider>(context, listen: false)
-                    .fetchNotes('123');
+                await context.read<NotesProvider>().fetchNotes(
+                    newNoteController.userId);
 
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('📝 Ghi chú đã được tạo thành công!'),
-                      duration: Duration(seconds: 2),
                     ),
                   );
                   Navigator.pop(context);
@@ -152,11 +148,9 @@ class _NewOrEditNotePageState extends State<NewOrEditNotePage> {
           ),
         ],
       ),
-
       body: SafeArea(
         child: Column(
           children: [
-            // 📝 Trường nhập tiêu đề ghi chú
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Selector<NewNoteController, bool>(
@@ -175,15 +169,12 @@ class _NewOrEditNotePageState extends State<NewOrEditNotePage> {
                     border: InputBorder.none,
                   ),
                   canRequestFocus: !readOnly,
-
-                  onChanged: (newvalue) => {
-                    newNoteController.title = newvalue,
-                  },
+                  onChanged: (newValue) =>
+                      newNoteController.title = newValue,
                 ),
               ),
             ),
 
-            // 🗓️ Hiển thị ngày tạo và sửa nếu đang chỉnh sửa ghi chú cũ
             if (!widget.isNewNote) ...[
               const BuildRowNewEdit(
                 label: "Last Modified",
@@ -195,55 +186,46 @@ class _NewOrEditNotePageState extends State<NewOrEditNotePage> {
               ),
             ],
 
-            // 🏷️ Hiển thị tag và thêm tag
-              TagShowRow(
-                label: "Tags",
-                tags: tags,
-                onAddTag: (newTag) {
-                  setState(() {
-                    tags.add(newTag);
-                  });
-                },
-              ),
-
+            TagShowRow(
+              label: "Tags",
+              tags: newNoteController.tags,
+              onAddTag: (newTag) {
+                setState(() {
+                  newNoteController.addTag(newTag);
+                });
+              },
+            ),
 
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 8.0),
               child: Divider(color: Colors.grey, thickness: 1),
             ),
 
-            // ✏️ Editor ghi chú + thanh công cụ
             Expanded(
               child: Selector<NewNoteController, bool>(
                 selector: (_, controller) => controller.readOnly,
                 builder: (_, readOnly, __) => Column(
                   children: [
                     Expanded(
-                      child: Stack(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            child: QuillEditor(
-                              controller: _controller,
-                              scrollController: ScrollController(),
-                              focusNode: focusNode,
-                              config: QuillEditorConfig(
-                                expands: true,
-                                checkBoxReadOnly: readOnly,
-                                scrollable: true,
-                                placeholder: "Note here ....",
-                                autoFocus: false,
-                                padding: EdgeInsets.zero,
-                                enableInteractiveSelection: true,
-                                scrollBottomInset: 100,
-                              ),
-                            ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: QuillEditor(
+                          controller: _controller,
+                          scrollController: ScrollController(),
+                          focusNode: focusNode,
+                          config: QuillEditorConfig(
+                            expands: true,
+                            checkBoxReadOnly: readOnly,
+                            scrollable: true,
+                            placeholder: "Note here ....",
+                            autoFocus: false,
+                            padding: EdgeInsets.zero,
+                            enableInteractiveSelection: true,
+                            scrollBottomInset: 100,
                           ),
-                        ],
+                        ),
                       ),
                     ),
-
-                    // 📌 Thanh công cụ chỉ hiển thị khi được chỉnh sửa
                     if (!readOnly)
                       NoteToolbar(controller: _controller),
                   ],

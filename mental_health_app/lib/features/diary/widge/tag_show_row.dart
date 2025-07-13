@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:mental_health_app/change_notifiers/new_note_controller.dart';
 import 'package:mental_health_app/features/diary/core/constants.dart';
 import 'package:mental_health_app/features/diary/widge/dialog_tags_card.dart';
 import 'package:mental_health_app/features/diary/widge/new_notes_dialog.dart';
 import 'package:mental_health_app/features/diary/widge/note_icon_button.dart';
+import 'package:mental_health_app/features/diary/widge/note_tag.dart';
+import 'package:provider/provider.dart';
 
 class TagShowRow extends StatefulWidget {
   final String label;
@@ -32,85 +35,90 @@ class _TagShowRowState extends State<TagShowRow> {
 
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Label: "Tags"
-          Expanded(
-            flex: 3,
-            child: Text(
-              widget.label,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: gray500,
-              ),
-            ),
+Widget build(BuildContext context) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4),
+    child: Row(
+      children: [
+        // "Tags" label
+        Text(
+          widget.label,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: gray500,
           ),
-          // Tags or "No tags added" + Add Button
-          Expanded(
-            flex: 5,
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                if (widget.tags.isEmpty)
-                  const Text(
-                    'No tags added',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  )
-                else
-                  ...widget.tags.map(
-                    (tag) => Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        tag,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
+        ),
 
-                // ✅ Nút thêm tag
-                NoteIconButton(
-                  icon: FontAwesomeIcons.circlePlus,
-                  size: 22,
-                  onPressed: () async {
-                    final String? tag = await showDialog<String>(
-                      context: context,
-                      builder: (context) => DialogCard(
-                        onTagAdded: (String tag) {
-                          Navigator.pop(context);
-                          widget.onAddTag(tag);
-                        },
-                        child: NewNoteDiaLog(
-                          tagController: _tagController,
-                          onTagAdded: (String tag) {
-                            Navigator.pop(context);
-                            widget.onAddTag(tag);
-                          },
-                        ),
-                      ),
-                    );
-
-
-                    print('tag is: $tag');
-
+        // Nút [+]
+        Padding(
+          padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+          child: NoteIconButton(
+            icon: FontAwesomeIcons.circlePlus,
+            size: 20,
+            onPressed: () async {
+              final String? tag = await showDialog<String>(
+                context: context,
+                builder: (context) => DialogCard(
+                  onTagAdded: (String tag) {
+                    Navigator.pop(context, tag);
+                    widget.onAddTag(tag);
                   },
+                  child: NewNoteDiaLog(
+                    tagController: _tagController,
+                    onTagAdded: (String tag) {
+                      Navigator.pop(context, tag);
+                      widget.onAddTag(tag);
+                    },
+                  ),
                 ),
-              ],
-            ),
+              );
+              if (tag != null) {
+                Provider.of<NewNoteController>(context, listen: false).addTag(tag);
+              }
+            },
           ),
+        ),
+        const SizedBox(width: 60,),
+        // Danh sách tag
+        Expanded(
+          child: Selector<NewNoteController, List<String>>(
+            selector: (_, controller) => controller.tags,
+            builder: (_, tags, __) {
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: tags.isEmpty
+                      ? [
+                          const Text(
+                            'No tags added',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          )
+                        ]
+                      : tags.asMap().entries.map((entry) {
+                          int index = entry.key;
+                          String tag = entry.value;
 
-        ],
-      ),
-    );
-  }
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: NoteTag(
+                              label: tag,
+                              onCLosed: () {
+                                Provider.of<NewNoteController>(context, listen: false).removeTag(index);
+                              },
+                            ),
+                          );
+                        }).toList(),
+
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+  
 }
 
