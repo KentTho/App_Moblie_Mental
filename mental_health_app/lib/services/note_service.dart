@@ -27,12 +27,14 @@ class NoteService {
     required String userId,
     required String title,
     required String content,
+    required String contentJson, // ✅ Thêm contentJson
     required List<String> tags,
   }) async {
     final body = jsonEncode({
       'user_id': userId, // là string UUID
       'title': title,
       'content': content,
+      'content_json': jsonDecode(contentJson), // ✅ Gửi JSON, không phải string thuần
       'tags': tags,
     });
 
@@ -51,7 +53,7 @@ class NoteService {
 
 
   static Future<void> updateNote({
-      required int noteId,
+      required String noteId,
       required String title,
       required String content,
       required List<String> tags,
@@ -75,12 +77,16 @@ class NoteService {
 
 
   static Future<void> deleteNote(String noteId) async {
-  final response = await http.delete(Uri.parse('$baseUrl/$noteId'));
+  final response = await http.delete(
+    Uri.parse('$baseUrl/$noteId'),
+    headers: {'Content-Type': 'application/json'},
+  );
 
-    if (response.statusCode != 200) {
-      throw Exception('Failed to delete note');
-    }
+  if (response.statusCode != 200 && response.statusCode != 204) {
+    throw Exception('Failed to delete note');
   }
+}
+
 
 
 }

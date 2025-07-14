@@ -14,13 +14,12 @@ class DialogCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final TextEditingController tagController = TextEditingController();
-
     return Dialog(
       backgroundColor: Colors.white.withOpacity(0.95),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
         padding: const EdgeInsets.all(20),
-        // On Video: Name Column changed is NewNoteDiaLog()
+        // On Video Part 3: Name Column changed is NewNoteDiaLog()
         child: child,
       ),
     );

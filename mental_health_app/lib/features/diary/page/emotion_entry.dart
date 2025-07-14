@@ -48,6 +48,8 @@ void initState() {
     final provider = context.read<NotesProvider>();
     provider.fetchNotes("1"); // Truyền đúng userId của người dùng đang đăng nhập
   });
+
+  
 }
 
   @override
@@ -104,8 +106,8 @@ void initState() {
 
 
         body: Consumer<NotesProvider>(
-          builder: (context, NotesProvider, child) {
-            final List<Note> notes = NotesProvider.notes;
+          builder: (context, provider, child) {
+            final List<Note> notes = provider.notes;
             return notes.isEmpty ? const NoNotes() : Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Column(
@@ -124,12 +126,12 @@ void initState() {
                           setState(() {
                             isDescending = !isDescending;
                           });
+                          context.read<NotesProvider>().isDescending = isDescending;
                         },
                       ),
                       const SizedBox(width: 16),
                       DropdownButton(
                         value: dropdownValue,
-                        underline: const SizedBox.shrink(),
                         borderRadius: BorderRadius.circular(16),
                         isDense: true,
                         icon: const Padding(
@@ -160,6 +162,7 @@ void initState() {
                           setState(() {
                             dropdownValue = newValue!;
                           });
+                          context.read<NotesProvider>().sortOption = newValue!;
                         },
                       ),
                       const Spacer(),
@@ -176,6 +179,7 @@ void initState() {
                       ),
                     ],
                   ),
+
                   const SizedBox(height: 8),
                   Expanded(
                     child: isGrid ? NotesGrid(notes: notes,) : NotesList(notes: notes,),

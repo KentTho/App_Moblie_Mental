@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:mental_health_app/change_notifiers/notes_provider.dart';
+import 'package:provider/provider.dart';
 
 import '../core/constants.dart';
 
@@ -11,6 +13,10 @@ class SearchField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextField(
+      onChanged: (value) {
+        context.read<NotesProvider>().filterNotes(value);
+      },
+
       decoration: InputDecoration(
         hintText: 'Search notes .....',
         hintStyle: TextStyle(fontSize: 16),

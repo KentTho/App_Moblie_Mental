@@ -10,8 +10,8 @@ class NoteIconButton extends StatelessWidget {
     super.key
     });
 
-final IconData icon;
-final double? size;
+  final IconData icon;
+  final double? size;
   final VoidCallback? onPressed;
 
 

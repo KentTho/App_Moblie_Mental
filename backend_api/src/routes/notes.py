@@ -25,6 +25,7 @@ def create_note(note: NoteCreate, db: Session = Depends(get_db)):  # ✅ Sửa �
         user_id=note.user_id,
         title=note.title,
         content=note.content,
+        content_json=note.content_json,  # ✅ thêm vào đây
         tags=note.tags,
         sentiment=detected_sentiment
     )
@@ -52,6 +53,7 @@ def update_note(note_id: str, updated_note: NoteUpdate, db: Session = Depends(ge
 
     note.title = updated_note.title
     note.content = updated_note.content
+    note.content_json = updated_note.content_json  # ✅ thêm vào đây
     note.tags = updated_note.tags
     note.sentiment = detect_sentiment(updated_note.content)
     db.commit()

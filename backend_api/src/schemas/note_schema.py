@@ -1,11 +1,12 @@
 from pydantic import BaseModel
-from typing import List
 from datetime import datetime
+from typing import Optional, List, Any
 
 class NoteCreate(BaseModel):
     user_id: str
     title: str
     content: str
+    content_json: Optional[Any] = None  # ✅ thêm vào đây
     tags: List[str]
 
 class NoteUpdate(BaseModel):

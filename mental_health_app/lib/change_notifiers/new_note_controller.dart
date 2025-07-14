@@ -1,26 +1,52 @@
-import 'dart:convert';
-
+import 'dart:convert'; // Cho phép chuyển đổi giữa String và JSON (Map/List)
 import 'package:flutter/material.dart';
-import 'package:flutter_quill/flutter_quill.dart';
-import 'package:mental_health_app/change_notifiers/notes_provider.dart';
-import 'package:mental_health_app/models/note.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_quill/flutter_quill.dart'; // Editor hỗ trợ rich text
+import 'package:mental_health_app/change_notifiers/notes_provider.dart'; // Quản lý danh sách note
+import 'package:mental_health_app/models/note.dart'; // Model Note
+import 'package:provider/provider.dart'; // State management
 
 class NewNoteController extends ChangeNotifier {
+  // ===========================
+  // 0. Note hiện tại
+  // ===========================
+
+  Note? _note;
+  
+  /// Gán giá trị `note` và cập nhật các trường tương ứng từ model
+  set note (Note? value){
+    _note = value;
+    _title = _note!.title ?? '';
+
+    // ⚠️ Cập nhật nội dung (rich text) từ JSON hoặc plain text
+    if (_note!.contentJson != null && _note!.contentJson!.isNotEmpty) {
+      _content = Document.fromJson(jsonDecode(_note!.contentJson!));
+    } else if (_note!.content != null && _note!.content!.isNotEmpty) {
+      _content = Document()..insert(0, _note!.content!);
+    } else {
+      _content = Document();
+    };
+    _tags.addAll(_note!.tags ?? []);
+    notifyListeners();
+  }
+
+  Note? get note => _note;
+
+
   // ===========================
   // 1. Các trường dữ liệu
   // ===========================
 
   bool _readOnly = false;
   String _title = '';
-  Document _content = Document();
+  Document _content = Document(); // Quill editor Document (rich text)
   final List<String> _tags = [];
 
-  String? _id;                     // ✅ ID của ghi chú (nullable khi tạo mới)
-  String _userId = "";              // ✅ ID người dùng (bắt buộc)
-  String? _sentiment;           // ✅ Tâm trạng (nếu có)
-  DateTime _createdAt = DateTime.now(); // ✅ Tự động gán lúc tạo
-  DateTime _updatedAt = DateTime.now(); // ✅ Cập nhật khi save
+  String? _id;
+  String _userId = "";
+  String? _sentiment;
+  DateTime _createdAt = DateTime.now();
+  DateTime _updatedAt = DateTime.now();
+
 
   // ===========================
   // 2. Getter / Setter
@@ -71,10 +97,12 @@ class NewNoteController extends ChangeNotifier {
     _updatedAt = value;
   }
 
+
   // ===========================
   // 3. Tag Methods
   // ===========================
 
+  /// Thêm tag vào danh sách nếu chưa tồn tại
   void addTag(String tag) {
     if (!_tags.contains(tag)) {
       _tags.add(tag);
@@ -82,12 +110,19 @@ class NewNoteController extends ChangeNotifier {
     }
   }
 
+  /// Xóa tag theo chỉ số
   void removeTag(int index) {
     if (index >= 0 && index < _tags.length) {
       _tags.removeAt(index);
       notifyListeners();
     }
   }
+
+  /// Kiểm tra điều kiện để cho phép lưu
+  bool get canSaveNote {
+    return title.isNotEmpty || content.toPlainText().trim().isNotEmpty;
+  }
+
 
   // ===========================
   // 4. Save Note
@@ -99,7 +134,7 @@ class NewNoteController extends ChangeNotifier {
         ? content.toPlainText().trim()
         : null;
 
-    // ✅ Không lưu vào DB, chỉ nội bộ để khôi phục editor
+    // ✅ Chuyển rich text thành JSON để lưu trữ (Quill Delta)
     final String contentJson = jsonEncode(_content.toDelta().toJson());
 
     final Note note = Note(
@@ -107,6 +142,7 @@ class NewNoteController extends ChangeNotifier {
       userId: _userId,
       title: newTitle ?? 'Untitled Note',
       content: newContent,
+      contentJson: contentJson, // ✅ Đưa rich text JSON vào model
       tags: tags,
       sentiment: _sentiment,
       createdAt: _createdAt,
@@ -116,7 +152,19 @@ class NewNoteController extends ChangeNotifier {
     print('✅ Note saved: ${note.title}');
     print('📝 contentJson (not saved to DB): $contentJson');
 
-    // TODO: Gửi `note` lên backend hoặc lưu DB nội bộ tại đây
+    // Gửi lên Provider (hoặc backend sau này)
     context.read<NotesProvider>().addNote(note);
   }
+
+
+  bool get hasChanged {
+  final initialTitle = _note?.title ?? '';
+  final initialContent = _note?.contentJson ?? '';
+
+  final currentTitle = _title.trim();
+  final currentContentJson = jsonEncode(_content.toDelta().toJson());
+
+  return currentTitle != initialTitle || currentContentJson != initialContent;
+}
+
 }
