@@ -1,0 +1,22 @@
+[33mc431522[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{0}: rebase (finish): returning to refs/heads/main
+[33mc431522[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{1}: rebase (start): checkout HEAD~6
+[33m2cca4c5[m[33m ([m[1;32mbackup-code[m[33m)[m HEAD@{2}: reset: moving to HEAD
+[33m2cca4c5[m[33m ([m[1;32mbackup-code[m[33m)[m HEAD@{3}: rebase (abort): returning to refs/heads/main
+[33m2cca4c5[m[33m ([m[1;32mbackup-code[m[33m)[m HEAD@{4}: rebase (abort): returning to refs/heads/main
+[33md2179ab[m HEAD@{5}: commit (amend): Delete Old Diary and modified New Diary
+[33m2cca4c5[m[33m ([m[1;32mbackup-code[m[33m)[m HEAD@{6}: commit: Delete Old Diary and modified New Diary
+[33m9d8b418[m HEAD@{7}: reset: moving to 9d8b418
+[33m9d8b418[m HEAD@{8}: reset: moving to 9d8b418
+[33m9d8b418[m HEAD@{9}: reset: moving to 9d8b418
+[33mc431522[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{10}: reset: moving to origin/main
+[33mc431522[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{11}: reset: moving to c4315228f82d56ab9220ba1393b9987dd33cb3f5
+[33m9d8b418[m HEAD@{12}: reset: moving to 9d8b4185df3474935ba6ca999eb5002f5ff72c59
+[33m81e50c5[m HEAD@{13}: commit: Create .env.example.txt
+[33m10761d4[m HEAD@{14}: commit: Ignore .env file
+[33m186ab4e[m HEAD@{15}: commit: Modifed .env
+[33m426a032[m HEAD@{16}: rebase (finish): returning to refs/heads/main
+[33m426a032[m HEAD@{17}: rebase (start): checkout HEAD~5
+[33m426a032[m HEAD@{18}: commit: Remove .env file and add to .gitignore
+[33m27a8ea4[m HEAD@{19}: commit: Remove .env file containing secrets
+[33m9d8b418[m HEAD@{20}: commit: Delete Diary and Modifed New Diary
+[33mc431522[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{21}: clone: from https://github.com/KentTho/App_Moblie_Mental.git
