@@ -1,32 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:mental_health_app/features/diary/core/constants.dart';
+import '../core/constants.dart';
 
 class NoteIconButton extends StatelessWidget {
-  const NoteIconButton({
-    required this.icon,
-    required this.size,
-    required this.onPressed,
-    super.key
-    });
-
   final IconData icon;
-  final double? size;
-  final VoidCallback? onPressed;
+  final double size;
+  final VoidCallback onPressed;
 
+  const NoteIconButton({
+    super.key,
+    required this.icon,
+    this.size = 24,
+    required this.onPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return        IconButton(
-                      onPressed: onPressed,
-                      icon: FaIcon(icon),
-                      padding: EdgeInsets.zero,
-                      visualDensity: VisualDensity.compact,
-                      constraints: BoxConstraints(),
-                      style: IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap,),
-                      iconSize: size,
-                      color: gray700,
-                    );
-                  }
+    return IconButton(
+      icon: FaIcon(icon, size: size, color: gray700),
+      onPressed: onPressed,
+    );
+  }
 }
-

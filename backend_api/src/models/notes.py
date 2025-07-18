@@ -14,5 +14,6 @@ class Note(Base):
     content_json = Column(JSONB, nullable=True)  # ✅ Thêm trường mới
     tags = Column(ARRAY(String), default=[])
     sentiment = Column(String)  # kết quả phân tích cảm xúc
+    emotions = Column(ARRAY(String), nullable=True, default=[])  # ✅ NEW: Add emotions column
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

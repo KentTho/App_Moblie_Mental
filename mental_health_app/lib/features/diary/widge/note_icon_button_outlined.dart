@@ -1,30 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:mental_health_app/features/diary/core/constants.dart';
+import '../core/constants.dart';
 
 class NoteIconButtonOutlined extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onPressed;
+
   const NoteIconButtonOutlined({
     super.key,
+    required this.icon,
     required this.onPressed,
-    required this.icon
   });
-
-  final IconData icon;
-  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
+    return OutlinedButton(
       onPressed: onPressed,
-      icon: FaIcon(icon),
-      style: IconButton.styleFrom(
-        backgroundColor: primaryColor,
-        foregroundColor: white,
+      style: OutlinedButton.styleFrom(
+        side: const BorderSide(color: primaryColor),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: black, width: 2),
         ),
+        padding: const EdgeInsets.all(12),
       ),
+      child: FaIcon(icon, color: primaryColor, size: 20),
     );
   }
 }

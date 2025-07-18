@@ -1,12 +1,15 @@
 import 'dart:convert';
 
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mental_health_app/features/auth/page/forgot.dart';
 import 'package:mental_health_app/features/auth/page/register_page.dart';
 import 'package:mental_health_app/features/home/homepage.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+import 'package:mental_health_app/change_notifiers/auth_provider.dart';
+
 
 
 class Login extends StatefulWidget {
@@ -38,6 +41,8 @@ class _LoginState extends State<Login> {
 
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
+      // ✅ Lưu userId vào AuthProvider
+      Provider.of<AuthProvider>(context, listen: false).setUserId(user.uid);
       // Gửi thông tin người dùng lên server
       final response = await http.post(
         Uri.parse("http://10.0.2.2:8000/user/firebase"),
@@ -50,8 +55,14 @@ class _LoginState extends State<Login> {
       );
 
       if (response.statusCode == 200) {
-        print("Đã lưu user vào PostgreSQL");
-      } else {
+        final data = jsonDecode(response.body);
+        final userId = data['id'] ?? data['user_id']; // tùy theo server trả về
+
+        // Gán userId vào AuthProvider
+        Provider.of<AuthProvider>(context, listen: false).setUserId(userId.toString());
+        print("Đã lưu user vào PostgreSQL với ID: $userId");
+      }
+        else {
         print("Lỗi: ${response.body}");
       }
 
@@ -86,6 +97,8 @@ class _LoginState extends State<Login> {
 
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
+      // ✅ Lưu userId
+      Provider.of<AuthProvider>(context, listen: false).setUserId(user.uid);
       final response = await http.post(
         Uri.parse("http://10.0.2.2:8000/user/firebase"),
         headers: {"Content-Type": "application/json"},
@@ -97,11 +110,15 @@ class _LoginState extends State<Login> {
       );
 
       if (response.statusCode == 200) {
-        print("Đã lưu user Google vào PostgreSQL");
-        if (!mounted) return;
+        final data = jsonDecode(response.body);
+        final userId = data['id'] ?? data['user_id'];
+        Provider.of<AuthProvider>(context, listen: false).setUserId(userId.toString());
+
+        print("Đã lưu user Google vào PostgreSQL với ID: $userId");
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const Homepage()));
         return;
-      } else {
+      }
+        else {
         print("Lỗi Google login: ${response.body}");
       }
     }

@@ -1,25 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:mental_health_app/change_notifiers/notes_provider.dart';
+import 'package:mental_health_app/features/diary/core/constants.dart';
 import 'package:mental_health_app/features/diary/screen/new_note_screen.dart';
 import 'package:mental_health_app/features/diary/screen/note_detail_screen.dart';
 import 'package:mental_health_app/models/note.dart';
 import 'package:provider/provider.dart';
-import '../core/constants.dart';
 
-class NotesList extends StatelessWidget {
+
+class NotesGrid extends StatelessWidget {
   final List<Note> notes;
 
-  const NotesList({super.key, required this.notes});
+  const NotesGrid({super.key, required this.notes});
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
+    return GridView.builder(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 0.8, // Adjust as needed for content
+      ),
       itemCount: notes.length,
       itemBuilder: (context, index) {
         final note = notes[index];
         return Card(
-          margin: const EdgeInsets.only(bottom: 12),
           elevation: 2,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -35,7 +41,7 @@ class NotesList extends StatelessWidget {
               );
             },
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -45,7 +51,7 @@ class NotesList extends StatelessWidget {
                         child: Text(
                           note.title,
                           style: const TextStyle(
-                            fontSize: 18,
+                            fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
                           maxLines: 1,
@@ -92,58 +98,61 @@ class NotesList extends StatelessWidget {
                   ),
                   if (note.content != null && note.content!.isNotEmpty) ...[
                     const SizedBox(height: 8),
-                    Text(
-                      note.content!,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
+                    Expanded(
+                      child: Text(
+                        note.content!,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
+                        ),
+                        maxLines: 5, // Adjust max lines for grid view
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   Row(
                     children: [
                       FaIcon(
                         FontAwesomeIcons.clock,
-                        size: 14,
+                        size: 12,
                         color: gray500,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         _formatDate(note.updatedAt),
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 10,
                           color: gray500,
                         ),
                       ),
-                      const Spacer(),
-                      if (note.tags.isNotEmpty)
-                        Wrap(
-                          spacing: 4,
-                          children: note.tags.take(2).map((tag) {
-                            return Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: primaryColor.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                tag,
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: primaryColor,
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        ),
                     ],
                   ),
+                  if (note.tags.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Wrap(
+                      spacing: 4,
+                      children: note.tags.take(1).map((tag) { // Limit tags for grid view
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: primaryColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            tag,
+                            style: TextStyle(
+                              fontSize: 9,
+                              color: primaryColor,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -185,13 +194,13 @@ class NotesList extends StatelessWidget {
     final difference = now.difference(date);
 
     if (difference.inDays == 0) {
-      return 'Today ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+      return 'Today';
     } else if (difference.inDays == 1) {
       return 'Yesterday';
     } else if (difference.inDays < 7) {
-      return '${difference.inDays} days ago';
+      return '${difference.inDays}d ago';
     } else {
-      return '${date.day}/${date.month}/${date.year}';
+      return '${date.day}/${date.month}';
     }
   }
 }

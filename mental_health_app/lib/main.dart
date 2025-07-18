@@ -1,6 +1,8 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:mental_health_app/change_notifiers/auth_provider.dart';
+import 'package:mental_health_app/change_notifiers/new_note_controller.dart';
 import 'package:mental_health_app/change_notifiers/notes_provider.dart';
 import 'package:mental_health_app/wrapper.dart';
 import 'package:provider/provider.dart';
@@ -23,6 +25,8 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => NotesProvider()),
+        ChangeNotifierProvider(create: (_) => NewNoteController()),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
       ],
       child: const MyApp(),
     ),

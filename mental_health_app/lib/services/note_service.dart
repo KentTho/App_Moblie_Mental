@@ -1,40 +1,42 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../models/note.dart';
+import '../models/note.dart'; // Import model Note
 
 class NoteService {
-  static const String baseUrl = 'http://10.0.2.2:8000/api/notes'; // nếu dùng Android Emulator
+  // ✅ Địa chỉ base URL API - nếu dùng Android Emulator, giữ nguyên IP 10.0.2.2
+  static const String baseUrl = 'http://10.0.2.2:8000/api/notes';
 
-  // ✅ Đảm bảo userId là String ở đây
-    static Future<List<Note>> fetchNotes(String userId) async {
+  /// =========================
+  /// 🔹 1. Lấy danh sách note của người dùng theo userId
+  /// =========================
+  static Future<List<Note>> fetchNotes(String userId) async {
     final response = await http.get(
-      Uri.parse("http://10.0.2.2:8000/api/notes/user/$userId"),
+      Uri.parse('$baseUrl/user/$userId'),
     );
 
     if (response.statusCode == 200) {
       final List jsonData = jsonDecode(response.body);
       return jsonData.map((e) => Note.fromJson(e)).toList();
     } else {
-      throw Exception("Lỗi khi fetch notes");
+      throw Exception("❌ Lỗi khi fetch notes");
     }
   }
 
-
-
-
-  // Tạo note mới
-    static Future<void> createNote({
+  /// =========================
+  /// 🔹 2. Tạo note mới
+  /// =========================
+  static Future<Note> createNote({
     required String userId,
     required String title,
     required String content,
-    required String contentJson, // ✅ Thêm contentJson
+    required String contentJson,
     required List<String> tags,
   }) async {
     final body = jsonEncode({
-      'user_id': userId, // là string UUID
+      'user_id': userId,
       'title': title,
       'content': content,
-      'content_json': jsonDecode(contentJson), // ✅ Gửi JSON, không phải string thuần
+      'content_json': jsonDecode(contentJson), // Parse JSON string thành Map
       'tags': tags,
     });
 
@@ -44,49 +46,59 @@ class NoteService {
       body: body,
     );
 
-    if (response.statusCode != 200 && response.statusCode != 201) {
-      throw Exception('Failed to create note');
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return Note.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('❌ Tạo note thất bại');
     }
   }
 
+  /// =========================
+  /// 🔹 3. Cập nhật (update) ghi chú theo noteId - FIXED
+  /// =========================
+  static Future<void> updateNote(
+    String noteId, {
+    required String title,
+    required String content,
+    required String contentJson,
+    required List<String> tags,
+  }) async {
+    final body = jsonEncode({
+      'title': title,
+      'content': content,
+      'content_json': jsonDecode(contentJson), 
+      'tags': tags,
+    });
 
+    print('🔄 Updating note with ID: $noteId'); // Debug log
+    print('🔄 URL: $baseUrl/$noteId'); // Debug log
+    print('🔄 Request Body: $body'); // Debug log the full body
 
+    final response = await http.put(
+      Uri.parse('$baseUrl/$noteId'),
+      headers: {'Content-Type': 'application/json'},
+      body: body,
+    );
 
-  static Future<void> updateNote({
-      required String noteId,
-      required String title,
-      required String content,
-      required List<String> tags,
-    }) async {
-      final body = jsonEncode({
-        'title': title,
-        'content': content,
-        'tags': tags,
-      });
+    print('🔄 Response status: ${response.statusCode}'); // Debug log
+    print('🔄 Response body: ${response.body}'); // Debug log
 
-      final response = await http.put(
-        Uri.parse('$baseUrl/$noteId'),
-        headers: {'Content-Type': 'application/json'},
-        body: body,
-      );
-
-      if (response.statusCode != 200) {
-        throw Exception('Failed to update note');
-      }
+    if (response.statusCode != 200) {
+      throw Exception('❌ Cập nhật note thất bại - Status: ${response.statusCode}. Response: ${response.body}');
     }
+  }
 
-
+  /// =========================
+  /// 🔹 4. Xoá ghi chú theo noteId
+  /// =========================
   static Future<void> deleteNote(String noteId) async {
-  final response = await http.delete(
-    Uri.parse('$baseUrl/$noteId'),
-    headers: {'Content-Type': 'application/json'},
-  );
+    final response = await http.delete(
+      Uri.parse('$baseUrl/$noteId'),
+      headers: {'Content-Type': 'application/json'},
+    );
 
-  if (response.statusCode != 200 && response.statusCode != 204) {
-    throw Exception('Failed to delete note');
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('❌ Xoá note thất bại');
+    }
   }
-}
-
-
-
 }

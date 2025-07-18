@@ -1,7 +1,7 @@
 # main.py
 
 from fastapi import FastAPI
-
+from dotenv import load_dotenv
 # Import route cho xác thực người dùng và nhật ký cảm xúc
 from src.routes import auth
 from src.routes import notes
@@ -17,6 +17,11 @@ from src.db.database import Base, engine
 # Import hệ thống path để Python nhận biết đường dẫn tương đối
 import sys
 import os
+
+load_dotenv()
+
+
+os.getenv("OPENAI_API_KEY")
 
 # Thêm đường dẫn hiện tại vào hệ thống tìm kiếm module của Python
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))

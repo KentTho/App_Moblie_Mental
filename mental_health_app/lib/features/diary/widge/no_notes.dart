@@ -1,31 +1,37 @@
 import 'package:flutter/material.dart';
+import '../core/constants.dart';
 
 class NoNotes extends StatelessWidget {
-  const NoNotes({
-    super.key,
-  });
+  const NoNotes({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Image.asset(
-          'assets/images/person.png', 
-          width: MediaQuery.sizeOf(context).width * 0.75,
-        ),
-        const SizedBox(height: 32,),
-          const Text(
-            'You Have no notes yets! \n Start creating by pressing the + button below! ',
+          Icon(
+            Icons.book_outlined,
+            size: 80,
+            color: gray500,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No diary entries yet',
             style: TextStyle(
               fontSize: 18,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'Fredo'
+              color: gray500,
+              fontWeight: FontWeight.w500,
             ),
-            textAlign: TextAlign.center,
-          )
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Tap the + button to create your first entry',
+            style: TextStyle(
+              fontSize: 14,
+              color: gray500,
+            ),
+          ),
         ],
       ),
     );
