@@ -1,56 +1,42 @@
-import os
-from dotenv import load_dotenv
-from openai import OpenAI
+from transformers import pipeline
 
-load_dotenv()
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# ✅ Load Hugging Face sentiment model once globally
+try:
+    # This model is specifically fine-tuned for binary sentiment (positive/negative)
+    sentiment_classifier = pipeline(
+        "sentiment-analysis",
+        model="distilbert-base-uncased-finetuned-sst-2-english"
+    )
+    print("✅ Sentiment model loaded.")
+except Exception as e:
+    sentiment_classifier = None
+    print(f"❌ Failed to load sentiment model: {e}")
+    print("Please ensure 'torch' or 'tensorflow' and 'transformers' are installed.")
 
-# Hàm phân tích cảm xúc chính xác hơn
+
 async def analyze_sentiment(text: str) -> str:
-    if not text.strip():
+    """
+    Phân tích tổng quan cảm xúc (positive, negative, neutral).
+    """
+    if not text.strip() or not sentiment_classifier:
         return "neutral"
 
     try:
-        prompt = f"""
-You're a clinical psychologist AI specialized in detecting emotional tone from diary entries.
+        # The pipeline call is synchronous. See notes in ai_emotion_service.py.
+        result = sentiment_classifier(text)[0] # Get the first (and usually only) result
+        label = result['label'].lower()
 
-Analyze the overall sentiment of the following text and classify it strictly as one of the following:
-- positive
-- negative
-- neutral
-- mixed
-
-❗ Be highly sensitive to signs of depression, hopelessness, or mental distress — these should be classified as 'negative'.
-Avoid defaulting to 'neutral' unless the text is truly emotionless or objective.
-
-Examples:
-1. "I’m exhausted, nothing feels worth it anymore." => negative
-2. "I feel completely hopeless. Every morning I wake up to the same cycle of sadness and loneliness." => negative
-3. "It was a good day overall." => positive
-4. "I bought groceries and went home." => neutral
-5. "I was happy at first but then broke down crying." => mixed
-
-Now analyze the following:
-\"\"\"{text}\"\"\"
-
-Only respond with one word: positive, negative, neutral, or mixed.
-"""
-
-        response = await client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=10,
-        )
-
-        sentiment = response.choices[0].message.content.strip().lower()
-
-        if sentiment in ["positive", "negative", "neutral", "mixed"]:
-            return sentiment
+        # The 'distilbert-base-uncased-finetuned-sst-2-english' model typically
+        # outputs 'positive' or 'negative'. It does not output 'neutral'.
+        # So, 'neutral' will only be returned if text is empty or model not loaded.
+        if label == "positive":
+            return "positive"
+        elif label == "negative":
+            return "negative"
         else:
-            print(f"⚠️ Unexpected sentiment response: {sentiment}")
+            # This 'else' branch should ideally not be reached if the model behaves as expected.
+            # It acts as a safe fallback for unexpected labels.
+            print(f"⚠️ Unexpected sentiment label from HF model: {label}. Returning 'neutral'.")
             return "neutral"
 
     except Exception as e:

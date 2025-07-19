@@ -1,55 +1,54 @@
-# Import thư viện cần thiết
-import os
-import json
-from dotenv import load_dotenv     # Đọc file .env
-from typing import List            # Định nghĩa kiểu trả về
-from openai import OpenAI          # Thư viện OpenAI
+from typing import List
+from transformers import pipeline  # ✅ Hugging Face pipeline
 
-# ⚠️ Bắt buộc load trước khi gọi getenv
-load_dotenv()
+# ✅ Load Hugging Face model once globally to avoid re-loading on every call
+try:
+    # This model is typically for emotion classification (e.g., joy, sadness, anger)
+    # The 'sentiment-analysis' pipeline type is often used for emotion classification too.
+    local_emotion_classifier = pipeline(
+        'sentiment-analysis', # This pipeline type works for emotion classification models
+        model="j-hartmann/emotion-english-distilroberta-base"
+    )
+    print("✅ Hugging Face emotion model loaded successfully.")
+except Exception as e:
+    local_emotion_classifier = None
+    print(f"❌ Failed to load Hugging Face emotion model: {e}")
+    print("Please ensure 'torch' or 'tensorflow' and 'transformers' are installed.")
 
-# Tạo client OpenAI từ API Key trong file .env
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# Hàm phân tích cảm xúc chi tiết (trả về danh sách các cảm xúc)
 async def analyze_emotions(text: str) -> List[str]:
     """
     Phân tích nhiều cảm xúc (joy, sadness, anger, calm, neutral, ...) từ nhật ký.
     Trả về danh sách các cảm xúc liên quan đến nội dung nhập vào.
     """
-
     if not text.strip():
-        return []  # Nếu trống thì trả về danh sách rỗng
+        return []
+
+    if not local_emotion_classifier:
+        print("⚠️ Local Hugging Face emotion model not loaded. No emotion analysis performed.")
+        return []
 
     try:
-        # Gửi yêu cầu tới GPT-4o với yêu cầu trả về JSON
-        response = await client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": f"""Analyze the primary emotions expressed in the following diary entry.
-Return a JSON array of emotion labels like: ["joy", "sadness", "anger", "calm", "neutral"].
+        # The pipeline call is synchronous. If this function is called from an async FastAPI endpoint,
+        # it will block the event loop. For CPU-bound tasks like model inference,
+        # consider running this in a separate thread pool if concurrency is high.
+        results = local_emotion_classifier(text)
 
-Diary Entry: "{text}"
-"""}
-            ],
-            max_tokens=100,  # Đủ để chứa mảng JSON trả về
-        )
+        # Extract labels and filter by score.
+        # The 'j-hartmann/emotion-english-distilroberta-base' model typically outputs
+        # labels like 'joy', 'sadness', 'anger', 'fear', 'surprise', 'disgust'.
+        # It might not directly output 'calm' or 'neutral' as distinct labels.
+        emotions = sorted(list(set([
+            res['label'].lower() for res in results if res['score'] > 0.5
+        ])))
 
-        # Trích nội dung chuỗi JSON từ phản hồi
-        content = response.choices[0].message.content.strip()
+        # Fallback: if no emotions meet the threshold, take the top-scoring one.
+        if not emotions and results:
+            emotions = [results[0]['label'].lower()]
 
-        # Phân tích chuỗi JSON thành danh sách
-        emotions = json.loads(content)
-
-        # Nếu hợp lệ, lọc bỏ trùng và trả về dạng chuẩn
-        if isinstance(emotions, list):
-            return sorted(list(set([
-                e.lower() for e in emotions if isinstance(e, str) and e.strip()
-            ])))
-        else:
-            return []
+        print("✅ Emotions analyzed using local Hugging Face model.")
+        return emotions
 
     except Exception as e:
-        print(f"❌ Error during AI emotion analysis: {e}")
+        print(f"❌ Error during local Hugging Face emotion analysis: {e}")
         return []
