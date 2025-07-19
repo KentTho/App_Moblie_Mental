@@ -1,54 +1,57 @@
+import os
+import json
+from dotenv import load_dotenv
 from typing import List
-from transformers import pipeline  # ✅ Hugging Face pipeline
+from transformers import pipeline
 
-# ✅ Load Hugging Face model once globally to avoid re-loading on every call
+# ⚠️ Load biến môi trường
+load_dotenv()
+
+# Các cảm xúc mà frontend có thể hiển thị
+FRONTEND_EMOTIONS = {
+    "joy", "sadness", "anger", "fear", "surprise", "disgust",
+    "calm", "excitement", "neutral"
+}
+
+# ✅ Mô hình mới: visolex/bartpho-emotion
 try:
-    # This model is typically for emotion classification (e.g., joy, sadness, anger)
-    # The 'sentiment-analysis' pipeline type is often used for emotion classification too.
     local_emotion_classifier = pipeline(
-        'sentiment-analysis', # This pipeline type works for emotion classification models
-        model="j-hartmann/emotion-english-distilroberta-base"
+        "text-classification",
+        model="visolex/bartpho-emotion",
+        return_all_scores=True  # rất quan trọng
     )
-    print("✅ Hugging Face emotion model loaded successfully.")
+    print("✅ Hugging Face Vietnamese emotion model loaded successfully.")
 except Exception as e:
     local_emotion_classifier = None
-    print(f"❌ Failed to load Hugging Face emotion model: {e}")
+    print(f"❌ Failed to load Hugging Face Vietnamese emotion model: {e}")
     print("Please ensure 'torch' or 'tensorflow' and 'transformers' are installed.")
 
 
 async def analyze_emotions(text: str) -> List[str]:
     """
-    Phân tích nhiều cảm xúc (joy, sadness, anger, calm, neutral, ...) từ nhật ký.
-    Trả về danh sách các cảm xúc liên quan đến nội dung nhập vào.
+    Phân tích nhiều cảm xúc (joy, sadness, anger, fear, surprise, disgust, ...) từ nhật ký.
+    Trả về danh sách các cảm xúc phù hợp với nội dung.
     """
-    if not text.strip():
-        return []
-
-    if not local_emotion_classifier:
-        print("⚠️ Local Hugging Face emotion model not loaded. No emotion analysis performed.")
+    if not text.strip() or not local_emotion_classifier:
+        print("⚠️ No input text or model not loaded.")
         return []
 
     try:
-        # The pipeline call is synchronous. If this function is called from an async FastAPI endpoint,
-        # it will block the event loop. For CPU-bound tasks like model inference,
-        # consider running this in a separate thread pool if concurrency is high.
-        results = local_emotion_classifier(text)
+        results = local_emotion_classifier(text)[0]  # Trả về danh sách label-score
+        emotions = [
+            res['label'].lower()
+            for res in results
+            if res['score'] > 0.5 and res['label'].lower() in FRONTEND_EMOTIONS
+        ]
 
-        # Extract labels and filter by score.
-        # The 'j-hartmann/emotion-english-distilroberta-base' model typically outputs
-        # labels like 'joy', 'sadness', 'anger', 'fear', 'surprise', 'disgust'.
-        # It might not directly output 'calm' or 'neutral' as distinct labels.
-        emotions = sorted(list(set([
-            res['label'].lower() for res in results if res['score'] > 0.5
-        ])))
-
-        # Fallback: if no emotions meet the threshold, take the top-scoring one.
+        # Nếu không có cảm xúc > 0.5, chọn cảm xúc mạnh nhất
         if not emotions and results:
-            emotions = [results[0]['label'].lower()]
+            top = max(results, key=lambda x: x['score'])
+            emotions = [top['label'].lower()] if top['label'].lower() in FRONTEND_EMOTIONS else []
 
-        print("✅ Emotions analyzed using local Hugging Face model.")
-        return emotions
+        print(f"✅ Emotions analyzed using Bartpho model: {emotions}")
+        return sorted(set(emotions))
 
     except Exception as e:
-        print(f"❌ Error during local Hugging Face emotion analysis: {e}")
+        print(f"❌ Error during local emotion analysis: {e}")
         return []

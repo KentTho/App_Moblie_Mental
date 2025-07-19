@@ -60,7 +60,7 @@ class NotesProvider extends ChangeNotifier {
   Future<void> updateNote(Note note) async {
     try {
       // ✅ FIXED: Remove duplicate id parameter and pass correct noteId
-      await NoteService.updateNote(
+      final updatedNoteFromServer = await NoteService.updateNote(
         note.id!, // Pass the note ID as the first parameter
         title: note.title ?? '',
         content: note.content ?? '',
@@ -70,7 +70,7 @@ class NotesProvider extends ChangeNotifier {
       
       final index = _notes.indexWhere((n) => n.id == note.id);
       if (index != -1) {
-        _notes[index] = note;
+        _notes[index] = updatedNoteFromServer;
         _sortNotes();
         _filteredNotes = List.from(_notes);
         notifyListeners();

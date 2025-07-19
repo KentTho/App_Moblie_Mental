@@ -5,8 +5,8 @@ from src.db.database import get_db
 from src.models.notes import Note
 from src.schemas.note_schema import NoteCreate, NoteUpdate, NoteOut
 from typing import List
-from src.services.ai_sentiment_service import analyze_sentiment
 from src.services.ai_emotion_service import analyze_emotions
+from src.services.ai_sentiment_service import analyze_emotions_for_sentiment_field
 
 router = APIRouter(prefix="/api/notes", tags=["Notes"])
 
@@ -15,7 +15,7 @@ async def create_note(note: NoteCreate, db: Session = Depends(get_db)):
     # Ensure content is not None before passing to AI analysis
     note_content_for_ai = note.content if note.content is not None else ""
 
-    detected_sentiment = await analyze_sentiment(note_content_for_ai)
+    detected_sentiment_emotions = await analyze_emotions_for_sentiment_field(note_content_for_ai)
     detected_emotions = await analyze_emotions(note_content_for_ai)
 
     db_note = Note(
@@ -25,7 +25,7 @@ async def create_note(note: NoteCreate, db: Session = Depends(get_db)):
         # ✅ Convert List[dict] from Pydantic to JSON string for DB storage
         content_json=json.dumps(note.content_json) if note.content_json is not None else None,
         tags=note.tags,
-        sentiment=detected_sentiment,
+        sentiment=", ".join(detected_sentiment_emotions) if detected_sentiment_emotions else None,
         emotions=detected_emotions
     )
     db.add(db_note)
@@ -53,7 +53,7 @@ async def update_note(note_id: str, updated_note: NoteUpdate, db: Session = Depe
     # Ensure content is not None before passing to AI analysis
     updated_note_content_for_ai = updated_note.content if updated_note.content is not None else ""
 
-    detected_sentiment = await analyze_sentiment(updated_note_content_for_ai)
+    detected_sentiment_emotions = await analyze_emotions_for_sentiment_field(updated_note_content_for_ai)
     detected_emotions = await analyze_emotions(updated_note_content_for_ai)
 
     note.title = updated_note.title
@@ -61,7 +61,7 @@ async def update_note(note_id: str, updated_note: NoteUpdate, db: Session = Depe
     # ✅ Convert List[dict] from Pydantic to JSON string for DB storage
     note.content_json = json.dumps(updated_note.content_json) if updated_note.content_json is not None else None
     note.tags = updated_note.tags
-    note.sentiment = detected_sentiment
+    note.sentiment = ", ".join(detected_sentiment_emotions) if detected_sentiment_emotions else None
     note.emotions = detected_emotions
     db.commit()
     db.refresh(note)

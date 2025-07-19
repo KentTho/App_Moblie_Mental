@@ -29,14 +29,14 @@ class NoteService {
     required String userId,
     required String title,
     required String content,
-    required String contentJson,
+    required String contentJson, // This is a JSON string from Quill
     required List<String> tags,
   }) async {
     final body = jsonEncode({
       'user_id': userId,
       'title': title,
       'content': content,
-      'content_json': jsonDecode(contentJson), // Parse JSON string thành Map
+      'content_json': jsonDecode(contentJson), // ✅ Parse JSON string to Map
       'tags': tags,
     });
 
@@ -56,17 +56,18 @@ class NoteService {
   /// =========================
   /// 🔹 3. Cập nhật (update) ghi chú theo noteId - FIXED
   /// =========================
-  static Future<void> updateNote(
+  // ✅ Change return type from Future<void> to Future<Note>
+  static Future<Note> updateNote(
     String noteId, {
     required String title,
     required String content,
-    required String contentJson,
+    required String contentJson, // This is a JSON string from Quill
     required List<String> tags,
   }) async {
     final body = jsonEncode({
       'title': title,
       'content': content,
-      'content_json': jsonDecode(contentJson), 
+      'content_json': jsonDecode(contentJson), // ✅ Parse JSON string to Map
       'tags': tags,
     });
 
@@ -83,7 +84,9 @@ class NoteService {
     print('🔄 Response status: ${response.statusCode}'); // Debug log
     print('🔄 Response body: ${response.body}'); // Debug log
 
-    if (response.statusCode != 200) {
+    if (response.statusCode == 200) { // ✅ Check for 200 OK
+      return Note.fromJson(jsonDecode(response.body)); // ✅ Return the updated note
+    } else {
       throw Exception('❌ Cập nhật note thất bại - Status: ${response.statusCode}. Response: ${response.body}');
     }
   }

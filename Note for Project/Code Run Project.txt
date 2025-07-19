@@ -57,6 +57,15 @@ bash
 
 uvicorn src.main:app --reload
 
+python -m uvicorn src.main:app --reload   => C:\Users\Tho\.cache\huggingface\hub
+
+Cập nhật vào requirements.txt để lưu lại
+
+pip freeze > requirements.txt
+
+Cài lại các thư viện cần thiết
+
+pip install -r requirements.txt
 
 > 🔗 Giao diện tài liệu API (Swagger UI):
 > [http://127.0.0.1:8000/docs/](http://127.0.0.1:8000/docs/)
