@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:mental_health_app/features/ai_analysis/page/emotion_analysis_page.dart';
 import 'package:mental_health_app/features/auth/page/login.dart';
 import 'package:mental_health_app/features/diary/screen/diary_screen.dart';
 import 'package:mental_health_app/features/home/profile/profile_page.dart';
@@ -438,6 +439,7 @@ class _HomepageState extends State<Homepage> with TickerProviderStateMixin {
                                     colors: [const Color(0xFFf093fb), const Color(0xFFf5576c)],
                                     onTap: () {
                                       // TODO: điều hướng tới trang AI phân tích cảm xúc
+                                      Navigator.push(context, MaterialPageRoute(builder: (_) => const EmotionAnalysisPage()));
                                     },
                                   ),
                                   _buildBrightFeatureButton(

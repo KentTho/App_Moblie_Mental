@@ -43,10 +43,18 @@ class _DiaryScreenState extends State<DiaryScreen> {
   }
 
   void _loadNotes() {
-    final authProvider = context.read<AuthProvider>();
-    final notesProvider = context.read<NotesProvider>();
-    notesProvider.fetchNotes(authProvider.userId);
+  final authProvider = context.read<AuthProvider>();
+  final userId = authProvider.userId;
+
+  if (userId == null) {
+    print("⚠️ userId is null, cannot load notes.");
+    return;
   }
+
+  final notesProvider = context.read<NotesProvider>();
+  notesProvider.fetchNotes(userId);
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -186,6 +194,13 @@ class _DiaryScreenState extends State<DiaryScreen> {
             final controller = context.read<NewNoteController>();
             final userId = context.read<AuthProvider>().userId;
 
+            if (userId == null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Bạn cần đăng nhập trước khi tạo ghi chú.')),
+              );
+              return;
+            }
+
             controller.userId = userId;
             controller.contentJson = '[]'; // Initialize content for new note
 
@@ -199,6 +214,7 @@ class _DiaryScreenState extends State<DiaryScreen> {
               ),
             );
           },
+
         ),
       ),
     );

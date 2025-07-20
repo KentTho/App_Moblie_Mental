@@ -20,16 +20,36 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
 
   Future<void> sendVerifyLink() async {
     final user = FirebaseAuth.instance.currentUser!;
-    await user.sendEmailVerification().then((value) {
+    await user.reload(); // <- thêm dòng này để cập nhật trạng thái mới nhất
+
+    if (!user.emailVerified) {
+      try {
+        await user.sendEmailVerification();
+        Get.snackbar(
+          'Link sent',
+          'A verification link has been sent to your email',
+          margin: const EdgeInsets.all(20),
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green[100],
+        );
+      } catch (e) {
+        Get.snackbar(
+          'Error',
+          'Failed to send verification email: $e',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red[100],
+        );
+      }
+    } else {
       Get.snackbar(
-        'Link sent',
-        'A verification link has been sent to your email',
-        margin: const EdgeInsets.all(20),
+        'Already Verified',
+        'Your email is already verified.',
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green[100],
+        backgroundColor: Colors.blue[100],
       );
-    });
+    }
   }
+
 
   Future<void> reloadAndCheckEmailVerified() async {
     await FirebaseAuth.instance.currentUser!.reload().then((value) {

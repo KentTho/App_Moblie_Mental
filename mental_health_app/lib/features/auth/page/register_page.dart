@@ -1,8 +1,11 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:flutter/material.dart';
 import 'package:mental_health_app/features/auth/page/login.dart';
 import 'package:dio/dio.dart';
 import 'package:mental_health_app/features/auth/page/verifyemail.dart';
+import 'package:provider/provider.dart';
+import 'package:mental_health_app/change_notifiers/auth_provider.dart';
+
 
 
 class RegisterPage extends StatefulWidget {
@@ -28,22 +31,31 @@ class _RegisterPageState extends State<RegisterPage> {
 
       final user = FirebaseAuth.instance.currentUser;
       // ✅ Cập nhật full name vào Firebase
-      if (user != null) {
-        await user.updateDisplayName(fullName.text); // 🟢 QUAN TRỌNG!
-        await user.reload(); // Refresh lại thông tin
+          if (user != null) {
+      await user.updateDisplayName(fullName.text);
+      await user.reload();
+
+      final dio = Dio();
+      final response = await dio.post(
+        'http://10.0.2.2:8000/user/firebase',
+        data: {
+          'email': user.email,
+          'uid': user.uid,
+          'full_name': fullName.text,
+        },
+      );
+
+      // ✅ Lấy userId từ backend trả về
+      if (response.statusCode == 200) {
+        final data = response.data;
+        final userId = data['id'] ?? data['user_id'];
+        if (userId != null) {
+          Provider.of<AuthProvider>(context, listen: false).setUserId(userId.toString());
+          print("Đã lưu user đăng ký với ID: $userId");
+        }
       }
-      // ✅ Gửi thông tin về backend (để lưu vào PostgreSQL)
-      if (user != null) {
-        final dio = Dio();
-        await dio.post(
-          'http://10.0.2.2:8000/user/firebase',
-          data: {
-            'email': user.email,
-            'uid': user.uid,
-            'full_name': fullName.text,
-          },
-        );
-      }
+    }
+
 
       // ✅ Chuyển trang khi thành công
       ScaffoldMessenger.of(context).showSnackBar(

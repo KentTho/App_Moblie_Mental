@@ -30,7 +30,7 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
     
     // Set userId from AuthProvider
     final authProvider = context.read<AuthProvider>();
-    _noteController.userId = authProvider.userId;
+    _noteController.userId = authProvider.userId!;
     
     // If editing existing note
     if (widget.note != null) {
@@ -56,8 +56,8 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
 
   @override
 Widget build(BuildContext context) {
-  return ChangeNotifierProvider.value(
-    value: _noteController,
+  return ChangeNotifierProvider<NewNoteController>(
+  create: (_) => _noteController,
     child: Theme(
       data: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: primaryColor),
@@ -245,7 +245,7 @@ Widget build(BuildContext context) {
     _quillController.dispose();
     _titleController.dispose();
     _tagController.dispose();
-    _noteController.dispose();
+    //_noteController.dispose();
     super.dispose();
   }
 }

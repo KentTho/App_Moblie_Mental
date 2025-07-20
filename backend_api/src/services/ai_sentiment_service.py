@@ -30,7 +30,7 @@ async def analyze_emotions_for_sentiment_field(text: str) -> List[str]:
         return []
 
     try:
-        results = sentiment_classifier(text)
+        results = sentiment_classifier(text)[0]  # ✅ Thêm [0] ở đây
 
         detected_emotions = set()
         for res in results:
@@ -39,18 +39,24 @@ async def analyze_emotions_for_sentiment_field(text: str) -> List[str]:
 
             mapped_label = None
             if label == 'tich_cuc':
-                if 'joy' in FRONTEND_EMOTIONS: mapped_label = 'joy'
-                elif 'excitement' in FRONTEND_EMOTIONS: mapped_label = 'excitement'
+                if 'joy' in FRONTEND_EMOTIONS:
+                    mapped_label = 'joy'
+                elif 'excitement' in FRONTEND_EMOTIONS:
+                    mapped_label = 'excitement'
             elif label == 'tieu_cuc':
-                if 'sadness' in FRONTEND_EMOTIONS: mapped_label = 'sadness'
-                elif 'anger' in FRONTEND_EMOTIONS: mapped_label = 'anger'
-                elif 'fear' in FRONTEND_EMOTIONS: mapped_label = 'fear'
+                if 'sadness' in FRONTEND_EMOTIONS:
+                    mapped_label = 'sadness'
+                elif 'anger' in FRONTEND_EMOTIONS:
+                    mapped_label = 'anger'
+                elif 'fear' in FRONTEND_EMOTIONS:
+                    mapped_label = 'fear'
             elif label == 'trung_tinh':
                 if 'neutral' in FRONTEND_EMOTIONS: mapped_label = 'neutral'
 
             if mapped_label and score > 0.5:
                 detected_emotions.add(mapped_label)
 
+        # fallback nếu không có cảm xúc > 0.5
         if not detected_emotions and results:
             top_label = results[0]['label'].lower()
             mapped_top_label = None
