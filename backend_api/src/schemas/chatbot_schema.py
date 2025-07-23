@@ -1,9 +1,8 @@
-# src/schemas/chatbot_schema.py
 from pydantic import BaseModel
 
 class ChatInput(BaseModel):
     message: str
-    user_id: str # To potentially personalize responses or log conversations
+    user_id: str # Changed from str to UUID
 
 class ChatOutput(BaseModel):
     response: str

@@ -11,7 +11,7 @@ if not firebase_admin._apps:
 
 security = HTTPBearer()
 
-async def verify_firebase_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
+def verify_firebase_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
     token = credentials.credentials
     try:
         decoded_token = auth.verify_id_token(token)

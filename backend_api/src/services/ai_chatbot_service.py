@@ -1,23 +1,14 @@
-# src/services/ai_chatbot_service.py
 import os
 from transformers import pipeline, set_seed
 from dotenv import load_dotenv
+from typing import Optional # Import Optional
 
 load_dotenv()
 
 # Set a seed for reproducibility
 set_seed(42)
 
-# --- Hugging Face Chatbot Model ---
-# Using a general conversational model. For a Vietnamese-specific chatbot,
-# a different model trained on Vietnamese conversations would be needed.
-# 'microsoft/DialoGPT-medium' is a good starting point for English.
-# For Vietnamese, you might need to find a specialized model or fine-tune one.
 try:
-    # Using a smaller, more general model for demonstration in a sandbox.
-    # For production, consider a more robust conversational model.
-    # Example: 'microsoft/DialoGPT-small' or 'facebook/blenderbot-400M-distill'
-    # Note: These are primarily English models.
     chatbot_pipeline = pipeline(
         "text-generation",
         model="microsoft/DialoGPT-small",
@@ -31,18 +22,19 @@ except Exception as e:
     print("Also, check your internet connection for model download.")
 
 
-async def chat_with_bot(user_message: str) -> str:
+async def chat_with_bot(user_message: str, user_id: Optional[str] = None) -> str: # Added user_id parameter
+    """
+    Interacts with the Hugging Face conversational AI model.
+    """
     if not user_message.strip() or not chatbot_pipeline:
-        return "I'm sorry, I couldn't process your request."
+        return "I'm sorry, I couldn't process your request. The chatbot model might not be loaded or your message is empty."
 
     try:
-        response = chatbot_pipeline(
-            user_message,
-            max_length=100,
-            num_return_sequences=1,
-            pad_token_id=50256  # for DialoGPT
-        )
-        return response[0]["generated_text"]
+        from transformers import Conversation
+        # You can use user_id here for logging or personalization if needed
+        conversation = Conversation(user_message)
+        response = chatbot_pipeline(conversation)
+        return response.generated_responses[-1]
     except Exception as e:
         print(f"❌ Error during chatbot interaction: {e}")
-        return "I'm sorry, I encountered an error while processing your request."
+        return "I'm sorry, I encountered an error while processing your request. Please try again later."

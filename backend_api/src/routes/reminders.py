@@ -21,7 +21,7 @@ def create_reminder(reminder: ReminderCreate, db: Session = Depends(get_db)):
     return db_reminder
 
 @router.get("/user/{user_id}", response_model=List[ReminderOut])
-def get_user_reminders(user_id: UUID, db: Session = Depends(get_db)):
+def get_user_reminders(user_id: str, db: Session = Depends(get_db)):
     """
     Retrieves all reminders for a specific user.
     """

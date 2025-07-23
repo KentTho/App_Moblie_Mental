@@ -8,7 +8,7 @@ class Note(Base):
     __tablename__ = "notes"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid4()))
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     title = Column(String)
     content = Column(String, nullable=False)
     content_json = Column(JSONB, nullable=True)  # ✅ Thêm trường mới

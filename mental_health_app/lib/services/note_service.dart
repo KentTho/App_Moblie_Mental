@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/note.dart'; // Import model Note
+import 'package:firebase_auth/firebase_auth.dart';
+
 
 class NoteService {
   // ✅ Địa chỉ base URL API - nếu dùng Android Emulator, giữ nguyên IP 10.0.2.2
@@ -21,7 +23,7 @@ class NoteService {
       throw Exception("❌ Lỗi khi fetch notes");
     }
   }
-
+ 
   /// =========================
   /// 🔹 2. Tạo note mới
   /// =========================
@@ -29,29 +31,36 @@ class NoteService {
     required String userId,
     required String title,
     required String content,
-    required String contentJson, // This is a JSON string from Quill
+    required String contentJson,
     required List<String> tags,
   }) async {
+    final user = FirebaseAuth.instance.currentUser;
+    final token = await user?.getIdToken(); // ✅ lấy token
+
     final body = jsonEncode({
-      'user_id': userId,
+      //'user_id': userId,
       'title': title,
       'content': content,
-      'content_json': jsonDecode(contentJson), // ✅ Parse JSON string to Map
+      'content_json': jsonDecode(contentJson),
       'tags': tags,
     });
 
     final response = await http.post(
       Uri.parse('$baseUrl/'),
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token', // ✅ Gửi token ở đây
+      },
       body: body,
     );
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       return Note.fromJson(jsonDecode(response.body));
     } else {
-      throw Exception('❌ Tạo note thất bại');
+      throw Exception('❌ Tạo note thất bại - ${response.statusCode}');
     }
   }
+
 
   /// =========================
   /// 🔹 3. Cập nhật (update) ghi chú theo noteId - FIXED

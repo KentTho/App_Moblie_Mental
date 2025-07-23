@@ -7,6 +7,7 @@ import 'package:mental_health_app/features/auth/page/forgot.dart';
 import 'package:mental_health_app/features/auth/page/register_page.dart';
 import 'package:mental_health_app/features/home/homepage.dart';
 import 'package:http/http.dart' as http;
+import 'package:mental_health_app/services/auth_service.dart';
 import 'package:provider/provider.dart';
 import 'package:mental_health_app/change_notifiers/auth_provider.dart';
 
@@ -27,143 +28,106 @@ class _LoginState extends State<Login> {
 
 
   Future<void> signIn() async {
-  if (!mounted) return;
+    if (!mounted) return;
+    setState(() => isLoading = true);
 
-  setState(() {
-    isLoading = true;
-  });
-
-  try {
-    await FirebaseAuth.instance.signInWithEmailAndPassword(
-      email: email.text,
-      password: password.text,
-    );
-
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      // ✅ Lưu userId vào AuthProvider
-      Provider.of<AuthProvider>(context, listen: false).setUserId(user.uid);
-      // Gửi thông tin người dùng lên server
-      final response = await http.post(
-        Uri.parse("http://10.0.2.2:8000/user/firebase"),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
-          "email": user.email,
-          "uid": user.uid,
-          "full_name": user.displayName ?? "Người dùng",
-        }),
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email.text,
+        password: password.text,
       );
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final userId = data['id'] ?? data['user_id']; // tùy theo server trả về
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await http.post(
+          Uri.parse("http://10.0.2.2:8000/user/firebase"),
+          headers: {"Content-Type": "application/json"},
+          body: jsonEncode({
+            "email": user.email,
+            "uid": user.uid,
+            "full_name": user.displayName ?? "Người dùng",
+          }),
+        );
 
-        // Gán userId vào AuthProvider
-        Provider.of<AuthProvider>(context, listen: false).setUserId(userId.toString());
-        print("Đã lưu user vào PostgreSQL với ID: $userId");
-      }
-        else {
-        print("Lỗi: ${response.body}");
-      }
+        final userId = await AuthService.fetchUserId(user.uid);
+        Provider.of<AuthProvider>(context, listen: false).setUserId(userId);
+        print("🌟 user_id: $userId");
 
-      if (!mounted) return;
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const Homepage()));
-      return; // tránh gọi setState sau Navigator
-    }
-  } on FirebaseAuthException catch (e) {
-    if (!mounted) return;
-    Get.snackbar("Error msg", e.code);
-  } catch (e) {
-    if (!mounted) return;
-    Get.snackbar("Error msg", e.toString());
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Đăng nhập thất bại: ${e.toString()}')),
-    );
-  }
-
-  if (!mounted) return;
-  setState(() {
-    isLoading = false;
-  });
-}
-
-
-
-
-  Future<void> loginWithGoogle() async {
-  try {
-    final GoogleAuthProvider googleProvider = GoogleAuthProvider();
-    await FirebaseAuth.instance.signInWithProvider(googleProvider);
-
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      // ✅ Lưu userId
-      Provider.of<AuthProvider>(context, listen: false).setUserId(user.uid);
-      final response = await http.post(
-        Uri.parse("http://10.0.2.2:8000/user/firebase"),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
-          "email": user.email,
-          "uid": user.uid,
-          "full_name": user.displayName ?? "Google User",
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final userId = data['id'] ?? data['user_id'];
-        Provider.of<AuthProvider>(context, listen: false).setUserId(userId.toString());
-
-        print("Đã lưu user Google vào PostgreSQL với ID: $userId");
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const Homepage()));
-        return;
-      }
-        else {
-        print("Lỗi Google login: ${response.body}");
-      }
-    }
-  } catch (e) {
-    if (!mounted) return;
-    print("Lỗi đăng nhập Google: $e");
-    Get.snackbar("Google Sign-In Failed", e.toString());
-  }
-}
-
-
-
-Future<void> loginWithGitHub() async {
-  try {
-    final GithubAuthProvider githubProvider = GithubAuthProvider();
-    await FirebaseAuth.instance.signInWithProvider(githubProvider);
-
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      final response = await http.post(
-        Uri.parse("http://10.0.2.2:8000/user/firebase"),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
-          "email": user.email,
-          "uid": user.uid,
-          "full_name": user.displayName ?? "GitHub User",
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        print("Đã lưu user GitHub vào PostgreSQL");
         if (!mounted) return;
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const Homepage()));
         return;
-      } else {
-        print("Lỗi GitHub login: ${response.body}");
       }
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      Get.snackbar("Error msg", e.code);
+    } catch (e) {
+      if (!mounted) return;
+      Get.snackbar("Error msg", e.toString());
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Login failed: $e')),
+      );
     }
-  } catch (e) {
-    if (!mounted) return;
-    print("Lỗi đăng nhập GitHub: $e");
-    Get.snackbar("GitHub Sign-In Failed", e.toString());
-  }
-}
 
+    if (mounted) setState(() => isLoading = false);
+  }
+
+  Future<void> loginWithGoogle() async {
+    try {
+      final GoogleAuthProvider googleProvider = GoogleAuthProvider();
+      await FirebaseAuth.instance.signInWithProvider(googleProvider);
+
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await http.post(
+          Uri.parse("http://10.0.2.2:8000/user/firebase"),
+          headers: {"Content-Type": "application/json"},
+          body: jsonEncode({
+            "email": user.email,
+            "uid": user.uid,
+            "full_name": user.displayName ?? "Google User",
+          }),
+        );
+
+        final userId = await AuthService.fetchUserId(user.uid);
+        Provider.of<AuthProvider>(context, listen: false).setUserId(userId);
+
+        if (!mounted) return;
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const Homepage()));
+      }
+    } catch (e) {
+      if (!mounted) return;
+      Get.snackbar("Google Sign-In Failed", e.toString());
+    }
+  }
+
+  Future<void> loginWithGitHub() async {
+    try {
+      final GithubAuthProvider githubProvider = GithubAuthProvider();
+      await FirebaseAuth.instance.signInWithProvider(githubProvider);
+
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await http.post(
+          Uri.parse("http://10.0.2.2:8000/user/firebase"),
+          headers: {"Content-Type": "application/json"},
+          body: jsonEncode({
+            "email": user.email,
+            "uid": user.uid,
+            "full_name": user.displayName ?? "GitHub User",
+          }),
+        );
+
+        final userId = await AuthService.fetchUserId(user.uid);
+        Provider.of<AuthProvider>(context, listen: false).setUserId(userId);
+
+        if (!mounted) return;
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const Homepage()));
+      }
+    } catch (e) {
+      if (!mounted) return;
+      Get.snackbar("GitHub Sign-In Failed", e.toString());
+    }
+  }
 
 
   @override

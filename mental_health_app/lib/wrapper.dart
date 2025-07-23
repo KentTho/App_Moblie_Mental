@@ -1,8 +1,10 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:mental_health_app/features/auth/page/verifyemail.dart';
 import 'package:mental_health_app/features/home/homepage.dart';
 import 'package:mental_health_app/features/auth/page/login.dart';
+import 'package:mental_health_app/change_notifiers/auth_provider.dart';
 
 class Wrapper extends StatelessWidget {
   const Wrapper({super.key});
@@ -21,7 +23,19 @@ class Wrapper extends StatelessWidget {
 
         // ✅ Đã đăng nhập
         if (snapshot.hasData && snapshot.data != null) {
-          if (snapshot.data!.emailVerified) {
+          final user = snapshot.data!;
+          final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+          // 🔐 Gán userId vào AuthProvider
+          if (snapshot.hasData) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              context.read<AuthProvider>().setUserId(snapshot.data!.uid);
+            });
+          }
+
+
+          // 📩 Kiểm tra email đã xác minh chưa
+          if (user.emailVerified) {
             return const Homepage(); // Email đã xác thực
           } else {
             return const VerifyEmailPage(); // Chưa xác thực

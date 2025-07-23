@@ -2,6 +2,8 @@ from pydantic import BaseModel, Field
 from typing import Annotated, Union
 from typing import Optional, List, Any
 from datetime import datetime
+from uuid import UUID
+
 class NoteBase(BaseModel):
     title: str
     content: Optional[str] = None # Changed to Optional[str] as it can be empty
@@ -12,7 +14,7 @@ class NoteBase(BaseModel):
 
 
 class NoteCreate(BaseModel):
-    user_id: str
+    #user_id: UUID
     title: str
     content: str
     content_json: Optional[Any] = None  # ✅ thêm vào đây
@@ -25,7 +27,7 @@ class NoteUpdate(BaseModel):
     tags: List[str]
 
 class NoteOut(BaseModel):
-    id: str
+    id: UUID
     user_id: str
     title: str
     content: str
@@ -36,5 +38,8 @@ class NoteOut(BaseModel):
     updated_at: datetime
 
     model_config = {
-        "from_attributes": True
+        "from_attributes": True,
+        "json_encoders": {
+            UUID: lambda v: str(v)  # ✅ thêm dòng này
+        }
     }

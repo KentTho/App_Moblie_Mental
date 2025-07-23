@@ -36,9 +36,9 @@ class Note {
         : null,
       tags: List<String>.from(json['tags'] ?? []),
       sentiment: json['sentiment'] as String?,
-      emotions: json['emotions'] != null // ✅ NEW: Parse emotions from JSON
-          ? List<String>.from(json['emotions'])
-          : null,
+      emotions: (json['emotions'] as List<dynamic>?)
+            ?.map((e) => e.toString())
+            .toList() ?? [], // ✅ Nếu null thì dùng list rỗng
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
     );

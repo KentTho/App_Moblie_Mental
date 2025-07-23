@@ -1,22 +1,18 @@
 from datetime import datetime, date
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from pydantic import BaseModel
+
 from src.db.database import get_db
-from src.services import user_service
+from src.models.notes import Note
 from src.models.user import User
 from src.models.user_profile import UserProfile
-from pydantic import BaseModel
-from typing import Optional
-from uuid import UUID
-from firebase_admin import auth
-from fastapi import Body
-
+from src.services import user_service
 from src.services.firebase import verify_firebase_token
 
-# Nếu bạn đặt verify_firebase_token ở file khác, cập nhật đúng đường dẫn
 router = APIRouter(prefix="/user", tags=["User"])
-
 
 # --- SCHEMAS ---
 class UserCreate(BaseModel):
@@ -43,17 +39,18 @@ class UpdateProfile(BaseModel):
     avatar_url: Optional[str] = None
     bio: Optional[str] = None
     phone: Optional[str] = None
-    birthday: Optional[date] = None       # 🟢 Thêm ngày sinh
+    birthday: Optional[date] = None
     gender: Optional[str] = None
 
+
 class UserResponse(BaseModel):
-    id: UUID  # ✅ Đúng kiểu
+    id: str
     email: str
     full_name: Optional[str]
     avatar_url: Optional[str]
     role: str
     is_verified: bool
-    birthday: Optional[date] = None  # 👈 Thêm
+    birthday: Optional[date] = None
     gender: Optional[str] = None
     created_at: datetime
     updated_at: datetime
@@ -62,14 +59,12 @@ class UserResponse(BaseModel):
 # --- REGISTER ---
 @router.post("/register")
 def register(user: UserCreate, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(User.firebase_uid == user.uid).first()
-    if db_user:
+    existing_user = db.query(User).filter(User.firebase_uid == user.uid).first()
+    if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    # Create user
     new_user = user_service.create_user(db, user.email, user.password, user.full_name)
 
-    # Create profile
     profile = UserProfile(
         user_id=new_user.id,
         full_name=user.full_name
@@ -77,26 +72,24 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     db.add(profile)
     db.commit()
 
-    return {"message": "User created successfully", "user_id": new_user.id}
+    return {"message": "User created successfully", "user_id": str(new_user.id)}
 
 
 # --- SAVE FIREBASE USER ---
 @router.post("/firebase")
 def save_firebase_user(user: UserFirebase, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(User.email == user.email).first()
-    if db_user:
-        return {"message": "User already exists"}
+    existing_user = db.query(User).filter(User.email == user.email).first()
+    if existing_user:
+        return {"message": "User already exists", "user_id": str(existing_user.id)}
 
-    # Create user
     new_user = User(
         email=user.email,
         firebase_uid=user.uid,
         full_name=user.full_name or "",
     )
     db.add(new_user)
-    db.flush()  # Get the ID without committing
+    db.flush()
 
-    # Create profile
     profile = UserProfile(
         user_id=new_user.id,
         full_name=user.full_name or ""
@@ -104,17 +97,16 @@ def save_firebase_user(user: UserFirebase, db: Session = Depends(get_db)):
     db.add(profile)
     db.commit()
 
-    return {"message": "User saved"}
+    return {"message": "User saved", "user_id": str(new_user.id)}
 
 
-# --- GET USER BY UID ---
+# --- GET USER BY FIREBASE UID ---
 @router.get("/firebase/{uid}", response_model=UserResponse)
 def get_user_by_firebase_uid(uid: str, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.firebase_uid == uid).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # Get profile data
     profile = db.query(UserProfile).filter(UserProfile.user_id == user.id).first()
 
     return UserResponse(
@@ -126,10 +118,20 @@ def get_user_by_firebase_uid(uid: str, db: Session = Depends(get_db)):
         is_verified=user.is_verified,
         birthday=profile.birthday if profile else None,
         gender=profile.gender if profile else None,
-        created_at=user.created_at.isoformat(),
-        updated_at=user.updated_at.isoformat(),
+        created_at=user.created_at,
+        updated_at=user.updated_at,
     )
 
+
+# --- GET NOTES BY FIREBASE UID ---
+@router.get("/firebase/{firebase_uid}/notes")
+def get_notes_by_firebase_uid(firebase_uid: str, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.firebase_uid == firebase_uid).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    notes = db.query(Note).filter(Note.user_id == user.id).order_by(Note.created_at.desc()).all()
+    return notes
 
 
 # --- UPDATE PROFILE ---
@@ -139,13 +141,11 @@ def update_profile(payload: UpdateProfile, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # Get or create profile
     profile = db.query(UserProfile).filter(UserProfile.user_id == user.id).first()
     if not profile:
         profile = UserProfile(user_id=user.id)
         db.add(profile)
 
-    # Update profile fields
     if payload.full_name is not None:
         profile.full_name = payload.full_name
     if payload.avatar_url is not None:
@@ -154,43 +154,36 @@ def update_profile(payload: UpdateProfile, db: Session = Depends(get_db)):
         profile.bio = payload.bio
     if payload.phone is not None:
         profile.phone = payload.phone
-
     if payload.birthday is not None:
         profile.birthday = payload.birthday
-
     if payload.gender is not None:
         profile.gender = payload.gender
-
 
     db.commit()
     return {"message": "Profile updated"}
 
 
-# --- DELETE USER ---
+# --- DELETE USER BY FIREBASE UID ---
 @router.delete("/delete/{uid}")
 def delete_user(uid: str, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.firebase_uid == uid).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # Profile will be deleted automatically due to CASCADE
     db.delete(user)
     db.commit()
     return {"message": "User deleted"}
 
 
 # --- UPDATE VERIFIED STATUS ---
-# --- UPDATE VERIFIED STATUS ---
 @router.put("/update-verified")
 def update_verified(
     payload: UpdateVerified,
     db: Session = Depends(get_db),
-    firebase_user=Depends(verify_firebase_token),  # ✅ Middleware kiểm tra Firebase token
+    firebase_user=Depends(verify_firebase_token),
 ):
-    # ✅ Dùng uid từ token thay vì từ payload để tránh giả mạo
     uid_from_token = firebase_user.get("uid")
 
-    # ✅ Kiểm tra email đã xác minh chưa
     if not firebase_user.get("email_verified"):
         raise HTTPException(status_code=403, detail="Email is not verified on Firebase")
 
@@ -201,5 +194,3 @@ def update_verified(
     user.is_verified = payload.is_verified
     db.commit()
     return {"message": "Verification status updated"}
-
-

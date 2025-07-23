@@ -1,4 +1,3 @@
-# src/routes/charts.py
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func, extract
@@ -8,14 +7,16 @@ from src.schemas.chart_schema import EmotionChartResponse, EmotionDataPoint
 from typing import List, Dict
 from collections import defaultdict
 from datetime import date, timedelta
+from uuid import UUID # Import UUID
 
 router = APIRouter()
 
 @router.get("/emotions-over-time/{user_id}", response_model=EmotionChartResponse)
-def get_emotions_over_time(user_id: str, db: Session = Depends(get_db)):
+def get_emotions_over_time(user_id: str, db: Session = Depends(get_db)): # Changed user_id type to UUID
     """
     Retrieves emotion data over time for a specific user, aggregated by date.
     """
+    # Filter directly with the UUID object
     notes = db.query(Note).filter(Note.user_id == user_id).order_by(Note.created_at).all()
 
     if not notes:

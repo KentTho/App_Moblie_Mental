@@ -22,6 +22,20 @@ class _RegisterPageState extends State<RegisterPage> {
   TextEditingController confirmPassword = TextEditingController();
 
   Future<void> signUp() async {
+    if (fullName.text.isEmpty || email.text.isEmpty || password.text.isEmpty || confirmPassword.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Please fill in all fields")),
+      );
+      return;
+    }
+
+    if (password.text != confirmPassword.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Passwords do not match")),
+      );
+      return;
+    }
+
     try {
       // Tạo tài khoản Firebase
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
@@ -34,7 +48,7 @@ class _RegisterPageState extends State<RegisterPage> {
           if (user != null) {
       await user.updateDisplayName(fullName.text);
       await user.reload();
-
+      print("Updated displayName: ${FirebaseAuth.instance.currentUser?.displayName}");
       final dio = Dio();
       final response = await dio.post(
         'http://10.0.2.2:8000/user/firebase',

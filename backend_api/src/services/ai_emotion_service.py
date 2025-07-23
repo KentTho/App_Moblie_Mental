@@ -26,25 +26,26 @@ except Exception as e:
     print(f"❌ Failed to load Hugging Face Vietnamese emotion model: {e}")
     print("Please ensure 'torch' or 'tensorflow' and 'transformers' are installed.")
 
-
 async def analyze_emotions(text: str) -> List[str]:
     """
-    Phân tích nhiều cảm xúc (joy, sadness, anger, fear, surprise, disgust, ...) từ nhật ký.
-    Trả về danh sách các cảm xúc phù hợp với nội dung.
+    Phân tích nhiều cảm xúc từ nhật ký. Trả về danh sách cảm xúc phù hợp với nội dung.
     """
     if not text.strip() or not local_emotion_classifier:
         print("⚠️ No input text or model not loaded.")
         return []
 
     try:
-        results = local_emotion_classifier(text)[0]  # Trả về danh sách label-score
+        prediction = local_emotion_classifier(text)
+
+        # ❗ pipeline với return_all_scores=True => trả về List[List[Dict]]
+        results = prediction[0] if isinstance(prediction, list) and isinstance(prediction[0], list) else []
+
         emotions = [
             res['label'].lower()
             for res in results
             if res['score'] > 0.5 and res['label'].lower() in FRONTEND_EMOTIONS
         ]
 
-        # Nếu không có cảm xúc > 0.5, chọn cảm xúc mạnh nhất
         if not emotions and results:
             top = max(results, key=lambda x: x['score'])
             emotions = [top['label'].lower()] if top['label'].lower() in FRONTEND_EMOTIONS else []
@@ -55,3 +56,4 @@ async def analyze_emotions(text: str) -> List[str]:
     except Exception as e:
         print(f"❌ Error during local emotion analysis: {e}")
         return []
+

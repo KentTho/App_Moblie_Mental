@@ -1,5 +1,6 @@
 // lib/change_notifiers/chart_provider.dart
 import 'package:flutter/material.dart';
+import 'package:mental_health_app/change_notifiers/auth_provider.dart';
 import 'package:mental_health_app/models/emotion_chart_model.dart';
 import 'package:mental_health_app/services/chart_service.dart';
 import 'package:provider/provider.dart'; // Assuming you use the Provider package
@@ -22,7 +23,7 @@ class ChartProvider with ChangeNotifier {
 
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final userId = authProvider.currentUserId; // Get user ID from AuthProvider
+      final userId = authProvider.userId; // Get user ID from AuthProvider
 
       if (userId == null) {
         _errorMessage = "User not logged in.";
@@ -42,20 +43,20 @@ class ChartProvider with ChangeNotifier {
   }
 }
 
-// Placeholder for AuthProvider if not provided by user
-class AuthProvider with ChangeNotifier {
-  String? _currentUserId = 'test_user_id'; // Replace with actual user ID logic
+// // Placeholder for AuthProvider if not provided by user
+// class AuthProvider with ChangeNotifier {
+//   String? _currentUserId = 'test_user_id'; // Replace with actual user ID logic
 
-  String? get currentUserId => _currentUserId;
+//   String? get currentUserId => _currentUserId;
 
-  // Example method to simulate login and set user ID
-  void login(String userId) {
-    _currentUserId = userId;
-    notifyListeners();
-  }
+//   // Example method to simulate login and set user ID
+//   void login(String userId) {
+//     _currentUserId = userId;
+//     notifyListeners();
+//   }
 
-  void logout() {
-    _currentUserId = null;
-    notifyListeners();
-  }
-}
+//   void logout() {
+//     _currentUserId = null;
+//     notifyListeners();
+//   }
+// }

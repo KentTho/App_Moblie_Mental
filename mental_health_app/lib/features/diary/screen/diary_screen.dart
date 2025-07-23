@@ -193,7 +193,7 @@ class _DiaryScreenState extends State<DiaryScreen> {
           onPressed: () {
             final controller = context.read<NewNoteController>();
             final userId = context.read<AuthProvider>().userId;
-
+            print("User ID ở NoteFab: $userId");
             if (userId == null) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Bạn cần đăng nhập trước khi tạo ghi chú.')),
