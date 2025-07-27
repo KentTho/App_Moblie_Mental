@@ -1,10 +1,10 @@
-from typing import List
+from typing import List, Dict, Any
 from transformers import pipeline
 
 # Define the emotions that the frontend is prepared to display.
 FRONTEND_EMOTIONS = {
     "joy", "sadness", "anger", "fear", "surprise", "disgust",
-    "calm", "excitement", "neutral"
+    "calm", "excitement", "neutral", "enjoyment"
 }
 
 # ✅ Load Hugging Face emotion model once globally
@@ -27,10 +27,13 @@ async def analyze_emotions_for_sentiment_field(text: str) -> List[str]:
     Trả về danh sách các cảm xúc liên quan đến nội dung nhập vào.
     """
     if not text.strip() or not sentiment_classifier:
+        print("⚠️ No input text or sentiment model not loaded.")
         return []
 
     try:
-        results = sentiment_classifier(text)[0]  # ✅ Thêm [0] ở đây
+        prediction: List[List[Dict[str, Any]]] = sentiment_classifier(text)
+        print(f"DEBUG: Raw sentiment prediction: {prediction}") # DEBUG: Print raw prediction
+        results = prediction[0] if isinstance(prediction, list) and prediction and isinstance(prediction[0], list) else []
 
         detected_emotions = set()
         for res in results:
@@ -53,17 +56,21 @@ async def analyze_emotions_for_sentiment_field(text: str) -> List[str]:
             elif label == 'trung_tinh':
                 if 'neutral' in FRONTEND_EMOTIONS: mapped_label = 'neutral'
 
-            if mapped_label and score > 0.5:
+            if mapped_label and score > 0.2: # ✅ Lowered threshold
                 detected_emotions.add(mapped_label)
 
-        # fallback nếu không có cảm xúc > 0.5
+        # Fallback: if no emotions pass the threshold, take the top-scoring one
         if not detected_emotions and results:
-            top_label = results[0]['label'].lower()
+            top_result = max(results, key=lambda x: x['score'])
+            top_label = top_result['label'].lower()
             mapped_top_label = None
             if top_label == 'tich_cuc':
                 if 'joy' in FRONTEND_EMOTIONS: mapped_top_label = 'joy'
+                elif 'excitement' in FRONTEND_EMOTIONS: mapped_top_label = 'excitement'
             elif top_label == 'tieu_cuc':
                 if 'sadness' in FRONTEND_EMOTIONS: mapped_top_label = 'sadness'
+                elif 'anger' in FRONTEND_EMOTIONS: mapped_top_label = 'anger'
+                elif 'fear' in FRONTEND_EMOTIONS: mapped_top_label = 'fear'
             elif top_label == 'trung_tinh':
                 if 'neutral' in FRONTEND_EMOTIONS: mapped_top_label = 'neutral'
 

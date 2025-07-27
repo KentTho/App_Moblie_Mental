@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:mental_health_app/change_notifiers/auth_provider.dart';
 import 'package:mental_health_app/change_notifiers/chart_provider.dart';
+import 'package:mental_health_app/change_notifiers/chatbot_provider.dart';
 import 'package:mental_health_app/change_notifiers/new_note_controller.dart';
 import 'package:mental_health_app/change_notifiers/notes_provider.dart';
 import 'package:mental_health_app/wrapper.dart';
@@ -27,9 +28,9 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => ChartProvider()),
+        ChangeNotifierProvider(create: (_) => ChatbotProvider()),
         ChangeNotifierProvider(create: (_) => NotesProvider()),
         ChangeNotifierProvider(create: (_) => NewNoteController()),
-        
       ],
       child: const MyApp(),
     ),

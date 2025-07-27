@@ -7,7 +7,7 @@ import 'package:mental_health_app/features/reminders/page/reminder_form_page.dar
 import 'package:intl/intl.dart'; // For date formatting
 
 class ReminderListPage extends StatefulWidget {
-  const ReminderListPage({Key? key}) : super(key: key);
+  const ReminderListPage({super.key});
 
   @override
   State<ReminderListPage> createState() => _ReminderListPageState();

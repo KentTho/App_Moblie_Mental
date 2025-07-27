@@ -19,16 +19,19 @@ class ApiService {
     };
   }
 
-  Future<http.Response> get(String endpoint) async {
+  Future<http.Response> get(String endpoint, {required Map<String, String> headers}) async {
     final uri = Uri.parse('$baseUrl$endpoint');
     final headers = await _getHeaders();
     return http.get(uri, headers: headers);
   }
 
-  Future<http.Response> post(String endpoint, Map<String, dynamic> data) async {
+  Future<http.Response> post(String endpoint, Map<String, dynamic> data, {required Map<String, String> headers}) async {
     final uri = Uri.parse('$baseUrl$endpoint');
     final headers = await _getHeaders();
-    return http.post(uri, headers: headers, body: json.encode(data));
+    return http.post(
+      uri, 
+      headers: headers..addAll({'Content-Type': 'application/json'}),
+      body: json.encode(data));
   }
 
   Future<http.Response> put(String endpoint, Map<String, dynamic> data) async {

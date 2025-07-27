@@ -1,13 +1,23 @@
 // lib/services/reminder_service.dart
 import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:mental_health_app/change_notifiers/auth_provider.dart';
 import 'package:mental_health_app/models/reminder_model.dart';
-import 'package:mental_health_app/services/api_service.dart'; // Assuming this path
+import 'package:mental_health_app/services/api_service.dart';
+import 'package:provider/provider.dart'; // Assuming this path
 
 class ReminderService {
   final ApiService _apiService = ApiService();
+  final AuthProvider _authProvider;
+  
+ ReminderService(BuildContext context) : _authProvider = Provider.of<AuthProvider>(context, listen: false);
 
   Future<Reminder> createReminder(Reminder reminder) async {
-    final response = await _apiService.post('/reminders', reminder.toJson());
+    final response = await _apiService.post(
+      '/reminders', 
+      reminder.toJson(),
+      headers: {'Authorization': 'Bearer ${_authProvider.firebaseToken}'},
+    );
 
     if (response.statusCode == 201) {
       return Reminder.fromJson(json.decode(response.body));
@@ -17,7 +27,10 @@ class ReminderService {
   }
 
   Future<List<Reminder>> getUserReminders(String userId) async {
-    final response = await _apiService.get('/reminders/user/$userId');
+    final response = await _apiService.get(
+      '/reminders/user/$userId',
+      headers: {'Authorization': 'Bearer ${_authProvider.firebaseToken}'},
+    );
 
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
@@ -28,7 +41,10 @@ class ReminderService {
   }
 
   Future<Reminder> getReminder(String reminderId) async {
-    final response = await _apiService.get('/reminders/$reminderId');
+    final response = await _apiService.get(
+      '/reminders/$reminderId',
+      headers: {'Authorization': 'Bearer ${_authProvider.firebaseToken}'},
+      );
 
     if (response.statusCode == 200) {
       return Reminder.fromJson(json.decode(response.body));

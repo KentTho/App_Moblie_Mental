@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:mental_health_app/change_notifiers/auth_provider.dart'; // Assuming this path
 
 class ChatbotProvider with ChangeNotifier {
-  final ChatbotService _chatbotService = ChatbotService();
+  final ChatbotService _chatbotService;
   final List<ChatMessage> _messages = [];
   bool _isSending = false;
   String? _errorMessage;
@@ -15,16 +15,13 @@ class ChatbotProvider with ChangeNotifier {
   bool get isSending => _isSending;
   String? get errorMessage => _errorMessage;
 
+
+
   // Initialize with a welcome message
-  ChatbotProvider() {
-    _messages.add(ChatMessage(
-      text: "Hello! How can I help you today?",
-      sender: MessageSender.bot,
-      timestamp: DateTime.now(),
-    ));
-  }
+  ChatbotProvider(BuildContext context) : _chatbotService = ChatbotService(context);
 
   Future<void> sendMessage(BuildContext context, String text) async {
+    await Future.delayed(const Duration(milliseconds: 300)); // Thêm delay tối thiểu
     if (text.trim().isEmpty) return;
 
     _isSending = true;
@@ -37,15 +34,15 @@ class ChatbotProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final UserId = authProvider.userId;
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final UserId = authProvider.userId; // Sửa UserId -> userId (quy ước naming)
 
-      if (UserId == null) {
-        _errorMessage = "User not logged in. Cannot send message.";
-        _isSending = false;
-        notifyListeners();
-        return;
-      }
+    if (UserId == null) {
+      _errorMessage = "Please login to use chatbot";
+      _isSending = false;
+      notifyListeners();
+      return;
+    }
 
       final chatInput = ChatInput(message: text, userId: UserId);
       final chatOutput = await _chatbotService.sendMessage(chatInput);
@@ -55,6 +52,7 @@ class ChatbotProvider with ChangeNotifier {
         sender: MessageSender.bot,
         timestamp: DateTime.now(),
       ));
+      _errorMessage = null; // Thêm dòng này
     } catch (e) {
       _errorMessage = 'Error sending message: $e';
       _messages.add(ChatMessage(

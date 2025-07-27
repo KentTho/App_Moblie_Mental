@@ -1,50 +1,65 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import func, extract
-from src.db.database import get_db
-from src.models.notes import Note
-from src.schemas.chart_schema import EmotionChartResponse, EmotionDataPoint
+from datetime import date, timedelta
 from typing import List, Dict
 from collections import defaultdict
-from datetime import date, timedelta
-from uuid import UUID # Import UUID
+from src.db.database import get_db
+from src.models.notes import Note
+from src.models.user import User
+from src.schemas.chart_schema import EmotionChartResponse
+from src.dependencies import get_current_user_from_firebase
 
-router = APIRouter()
+router = APIRouter(prefix="/api/charts", tags=["Charts"])
 
-@router.get("/emotions-over-time/{user_id}", response_model=EmotionChartResponse)
-def get_emotions_over_time(user_id: str, db: Session = Depends(get_db)): # Changed user_id type to UUID
+
+@router.get("/emotions-over-time/{firebase_uid}", response_model=EmotionChartResponse)
+async def get_emotions_over_time(
+        firebase_uid: str,
+        days: int = 30,  # Tham số tùy chọn
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user_from_firebase)
+):
     """
-    Retrieves emotion data over time for a specific user, aggregated by date.
+    Lấy dữ liệu cảm xúc theo thời gian
+
+    Parameters:
+    - firebase_uid: ID người dùng từ Firebase
+    - days: Số ngày cần lấy dữ liệu (mặc định: 30)
     """
-    # Filter directly with the UUID object
-    notes = db.query(Note).filter(Note.user_id == user_id).order_by(Note.created_at).all()
+    try:
+        # Xác thực người dùng
+        if current_user.firebase_uid != firebase_uid:
+            raise HTTPException(status_code=403, detail="Unauthorized access")
 
-    if not notes:
-        return EmotionChartResponse(data=[])
+        # Tính toán khoảng thời gian
+        end_date = date.today()
+        start_date = end_date - timedelta(days=days)
 
-    # Aggregate emotions by date
-    daily_emotion_counts: Dict[date, Dict[str, int]] = defaultdict(lambda: defaultdict(int))
+        # Truy vấn dữ liệu
+        notes = db.query(Note).filter(
+            Note.user_id == current_user.id,
+            Note.created_at >= start_date,
+            Note.created_at <= end_date
+        ).order_by(Note.created_at).all()
 
-    for note in notes:
-        note_date = note.created_at.date()
-        if note.emotions:
-            for emotion in note.emotions:
-                daily_emotion_counts[note_date][emotion] += 1
+        # Xử lý aggregation
+        daily_stats = defaultdict(lambda: defaultdict(int))
+        for note in notes:
+            note_date = note.created_at.date()
+            for emotion in note.emotions or []:
+                daily_stats[note_date][emotion] += 1
 
-    # Convert to a list of EmotionDataPoint, ensuring all dates are present (optional, but good for charts)
-    # Find min and max dates to fill in missing days
-    min_date = min(daily_emotion_counts.keys())
-    max_date = max(daily_emotion_counts.keys())
+        # Điền đầy đủ các ngày
+        chart_data = []
+        current_date = start_date
+        while current_date <= end_date:
+            chart_data.append({
+                "date": current_date,
+                "emotion_counts": dict(daily_stats[current_date])
+            })
+            current_date += timedelta(days=1)
 
-    chart_data: List[EmotionDataPoint] = []
-    current_date = min_date
-    while current_date <= max_date:
-        chart_data.append(
-            EmotionDataPoint(
-                date=current_date,
-                emotion_counts=daily_emotion_counts[current_date]
-            )
-        )
-        current_date += timedelta(days=1)
+        return {"data": chart_data}
 
-    return EmotionChartResponse(data=chart_data)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")

@@ -1,0 +1,14 @@
+TEst API AI cảm xúc 
+
+/// ✅ Ví dụ nội dung note tương ứng với cảm xúc
+  static const Map<String, String> exampleNotes = {
+    "joy": "Hôm nay thật tuyệt vời! Tôi đã hoàn thành mọi công việc đúng hạn và nhận được lời khen từ sếp. Tôi cảm thấy rất tự hào và hạnh phúc vì những nỗ lực của mình cuối cùng cũng được công nhận.",
+    "sadness": "Tôi cảm thấy thật cô đơn và thất vọng. Mọi thứ dường như không đi đúng hướng, và tôi không thể tìm thấy niềm vui trong bất kỳ điều gì nữa. Tâm trạng tôi ngày càng tồi tệ.",
+    "anger": "Tôi thực sự tức giận vì bị đối xử bất công. Họ không lắng nghe tôi và cứ áp đặt mọi quyết định. Tôi cảm thấy như mình không có tiếng nói trong chính cuộc sống của mình.",
+    "fear": "Tôi lo lắng suốt cả đêm vì buổi phỏng vấn sắp tới. Nỗi sợ thất bại và bị đánh giá đang làm tôi mất ngủ, và tim tôi cứ đập nhanh mỗi khi nghĩ về nó.",
+    "surprise": "Tôi hoàn toàn bất ngờ khi bạn bè tổ chức sinh nhật bất ngờ cho tôi. Tôi không hề hay biết gì cả và cảm thấy vô cùng xúc động với sự quan tâm đó.",
+    "disgust": "Tôi cảm thấy ghê tởm với cách mà họ hành xử với người khác. Sự giả dối và hai mặt khiến tôi không muốn tiếp xúc thêm nữa.",
+    "calm": "Tôi ngồi bên hiên nhà, lắng nghe tiếng mưa rơi và hít thở không khí trong lành. Mọi thứ đều yên bình và tôi cảm thấy một sự tĩnh lặng lan tỏa khắp tâm hồn.",
+    "excitement": "Tôi không thể chờ đợi đến kỳ nghỉ sắp tới! Mọi kế hoạch đã được chuẩn bị kỹ càng và tôi rất phấn khích với những chuyến phiêu lưu phía trước.",
+    "neutral": "Ngày hôm nay trôi qua khá bình thường. Không có gì đặc biệt xảy ra, tôi chỉ hoàn thành các công việc thường nhật như mọi ngày.",
+  };

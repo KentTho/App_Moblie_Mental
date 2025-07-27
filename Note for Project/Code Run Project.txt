@@ -67,6 +67,24 @@ Cài lại các thư viện cần thiết
 
 pip install -r requirements.txt
 
+
+✅ Bước 2: Kiểm tra lại xem còn không
+Chạy lại lệnh sau để kiểm tra:
+
+netstat -ano | findstr :8000
+✅ Nếu không thấy gì => nghĩa là uvicorn đã được dừng thành công.
+
+Nếu vẫn còn hiện ra PID cũ thì bạn hãy thử:
+
+
+taskkill /IM python.exe /F
+⚠️ Cảnh báo: Lệnh trên sẽ dừng tất cả tiến trình Python đang chạy (chỉ dùng nếu bạn không có process Python quan trọng đang chạy khác).
+
+
+
+
+
+
 > 🔗 Giao diện tài liệu API (Swagger UI):
 > [http://127.0.0.1:8000/docs/](http://127.0.0.1:8000/docs/)
 

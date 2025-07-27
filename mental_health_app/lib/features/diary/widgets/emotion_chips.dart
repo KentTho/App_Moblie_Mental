@@ -6,6 +6,7 @@ class EmotionChips extends StatelessWidget {
   const EmotionChips({super.key, required this.emotions});
 
   static const Map<String, String> emotionEmoji = {
+    "enjoyment": "😊",  // Thêm emoji phù hợp
     "joy": "😄",
     "sadness": "😢",
     "anger": "😠",
@@ -18,6 +19,7 @@ class EmotionChips extends StatelessWidget {
   };
 
   static const Map<String, String> emotionTooltip = {
+    "enjoyment": "Thích thú",
     "joy": "Niềm vui",
     "sadness": "Nỗi buồn",
     "anger": "Tức giận",
@@ -30,6 +32,7 @@ class EmotionChips extends StatelessWidget {
   };
 
   static const Map<String, Color> emotionColor = {
+    "enjoyment": Colors.lightGreen,  // Màu sắc phù hợp
     "joy": Colors.yellow,
     "sadness": Colors.blue,
     "anger": Colors.redAccent,

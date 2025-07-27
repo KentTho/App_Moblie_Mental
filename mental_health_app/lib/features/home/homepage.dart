@@ -1,6 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:mental_health_app/features/ai_analysis/page/emotion_analysis_page.dart';
 import 'package:mental_health_app/features/auth/page/login.dart';
 import 'package:mental_health_app/features/charts/page/emotion_chart_page.dart';
 import 'package:mental_health_app/features/chatbot/page/chatbot_page.dart';
@@ -144,7 +143,7 @@ class _HomepageState extends State<Homepage> with TickerProviderStateMixin {
   }) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
+      child: SizedBox(
         width: 72,
         child: Column(
           children: [
@@ -254,31 +253,31 @@ class _HomepageState extends State<Homepage> with TickerProviderStateMixin {
                           ),
                         ),
                         // Settings Button
-                        GestureDetector(
-                          onTap: () {
-                            // Settings action
-                          },
-                          child: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.08),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Icon(
-                              Icons.settings_rounded,
-                              color: Colors.grey[600],
-                              size: 20,
+                       // Logout Button
+                          const SizedBox(width: 12),
+                          GestureDetector(
+                            onTap: signout,
+                            child: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.08),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Icon(
+                                Icons.logout_rounded,
+                                color: Colors.redAccent,
+                                size: 20,
+                              ),
                             ),
                           ),
-                        ),
                       ],
                     ),
                   ),
@@ -333,10 +332,16 @@ class _HomepageState extends State<Homepage> with TickerProviderStateMixin {
                             _buildQuickActionButton(
                               icon: Icons.notifications_none_rounded,
                               label: "Reminders",
-                              color: const Color(0xFFFF3B30),
+                              color: const Color.fromARGB(255, 247, 35, 229),
                               onTap: () {
                                 // Navigator.push(context, MaterialPageRoute(builder: (_) => const ReminderListPage()));
                               },
+                            ),
+                            _buildQuickActionButton(
+                              icon: Icons.logout_rounded,
+                              label: "Logout",
+                              color: Colors.redAccent,
+                              onTap: signout,
                             ),
                           ],
                         ),

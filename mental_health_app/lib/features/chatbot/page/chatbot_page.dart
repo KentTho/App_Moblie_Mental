@@ -6,7 +6,7 @@ import 'package:mental_health_app/models/chatbot_model.dart';
 import 'package:intl/intl.dart'; // For time formatting
 
 class ChatbotPage extends StatefulWidget {
-  const ChatbotPage({Key? key}) : super(key: key);
+  const ChatbotPage({super.key});
 
   @override
   State<ChatbotPage> createState() => _ChatbotPageState();
@@ -51,77 +51,87 @@ class _ChatbotPageState extends State<ChatbotPage> {
         title: const Text('24/7 AI Support'),
         backgroundColor: Colors.deepPurple,
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Consumer<ChatbotProvider>(
-              builder: (context, chatbotProvider, child) {
-                _scrollToBottom(); // Scroll to bottom when messages update
-                return ListView.builder(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.all(10.0),
-                  itemCount: chatbotProvider.messages.length,
-                  itemBuilder: (context, index) {
-                    final message = chatbotProvider.messages[index];
-                    return _buildMessageBubble(message);
-                  },
-                );
-              },
-            ),
-          ),
-          _buildMessageInput(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMessageBubble(ChatMessage message) {
-    final isUser = message.sender == MessageSender.user;
-    return Align(
-      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 8.0),
-        padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 15.0),
-        decoration: BoxDecoration(
-          color: isUser ? Colors.deepPurple.shade100 : Colors.grey.shade200,
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(15),
-            topRight: const Radius.circular(15),
-            bottomLeft: isUser ? const Radius.circular(15) : const Radius.circular(0),
-            bottomRight: isUser ? const Radius.circular(0) : const Radius.circular(15),
-          ),
-        ),
+      body: SafeArea( // Thêm SafeArea
         child: Column(
-          crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
           children: [
-            Text(
-              message.text,
-              style: TextStyle(
-                color: isUser ? Colors.deepPurple.shade900 : Colors.black87,
-                fontSize: 15.0,
+            Expanded(
+              child: Consumer<ChatbotProvider>(
+                builder: (context, chatbotProvider, child) {
+                  return ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.all(10.0),
+                    itemCount: chatbotProvider.messages.length,
+                    itemBuilder: (context, index) {
+                      final message = chatbotProvider.messages[index];
+                      return _buildMessageBubble(message);
+                    },
+                  );
+                },
               ),
             ),
-            const SizedBox(height: 4),
-            Text(
-              DateFormat('hh:mm a').format(message.timestamp),
-              style: TextStyle(
-                color: Colors.grey.shade600,
-                fontSize: 10.0,
-              ),
-            ),
+            _buildMessageInput(),
           ],
         ),
       ),
     );
   }
 
+  Widget _buildMessageBubble(ChatMessage message) {
+    final isUser = message.sender == MessageSender.user;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Align(
+        alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.8,
+          ),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 15.0),
+            decoration: BoxDecoration(
+              color: isUser ? Colors.deepPurple.shade100 : Colors.grey.shade200,
+              borderRadius: BorderRadius.only(
+                topLeft: const Radius.circular(15),
+                topRight: const Radius.circular(15),
+                bottomLeft: isUser ? const Radius.circular(15) : Radius.zero,
+                bottomRight: isUser ? Radius.zero : const Radius.circular(15),
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              children: [
+                Text(
+                  message.text,
+                  style: TextStyle(
+                    color: isUser ? Colors.deepPurple.shade900 : Colors.black87,
+                    fontSize: 15.0,
+                  ),
+                  softWrap: true,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  DateFormat('hh:mm a').format(message.timestamp),
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: 10.0,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildMessageInput() {
-    return Consumer<ChatbotProvider>(
-      builder: (context, chatbotProvider, child) {
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 10.0),
-          color: Colors.white,
-          child: Row(
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 10.0),
+      color: Colors.white,
+      child: Consumer<ChatbotProvider>(
+        builder: (context, chatbotProvider, child) {
+          return Row(
             children: [
               Expanded(
                 child: TextField(
@@ -149,11 +159,12 @@ class _ChatbotPageState extends State<ChatbotPage> {
                       backgroundColor: Colors.deepPurple,
                       mini: true,
                       child: const Icon(Icons.send, color: Colors.white),
-                    ),
+                  )
             ],
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
+
 }

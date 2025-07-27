@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:mental_health_app/change_notifiers/auth_provider.dart'; // Assuming this path
 
 class ReminderProvider with ChangeNotifier {
-  final ReminderService _reminderService = ReminderService();
+  final ReminderService _reminderService;
   List<Reminder> _reminders = [];
   bool _isLoading = false;
   String? _errorMessage;
@@ -14,6 +14,10 @@ class ReminderProvider with ChangeNotifier {
   List<Reminder> get reminders => _reminders;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+
+ReminderProvider(BuildContext context) 
+    : _reminderService = ReminderService(context);
+
 
   Future<void> fetchReminders(BuildContext context) async {
     _isLoading = true;

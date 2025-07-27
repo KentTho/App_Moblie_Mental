@@ -2,17 +2,23 @@
 import 'dart:convert';
 import 'package:mental_health_app/models/emotion_chart_model.dart';
 import 'package:mental_health_app/services/api_service.dart'; // Assuming this path
-
 class ChartService {
   final ApiService _apiService = ApiService();
 
-  Future<EmotionChartResponse> getEmotionsOverTime(String userId) async {
-    final response = await _apiService.get('/charts/emotions-over-time/$userId');
-
+  Future<EmotionChartResponse> getEmotionsOverTime(
+    String firebaseUid,
+    String firebaseToken,
+     {int days = 30}
+    ) async {
+    final response = await _apiService.get(
+      'http://10.0.2.2:8000/api/charts/emotions-over-time/$firebaseUid?days=$days',
+      headers: {'Authorization': 'Bearer $firebaseToken'},
+    );
+    
     if (response.statusCode == 200) {
       return EmotionChartResponse.fromJson(json.decode(response.body));
     } else {
-      throw Exception('Failed to load emotion chart data: ${response.body}');
+      throw Exception('Failed to load chart data: ${response.statusCode}');
     }
   }
 }

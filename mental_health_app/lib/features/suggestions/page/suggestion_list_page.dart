@@ -2,11 +2,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:mental_health_app/change_notifiers/suggestion_provider.dart';
-import 'package:mental_health_app/models/suggestion_model.dart';
 import 'package:url_launcher/url_launcher.dart'; // For opening links
 
 class SuggestionListPage extends StatefulWidget {
-  const SuggestionListPage({Key? key}) : super(key: key);
+  const SuggestionListPage({super.key});
 
   @override
   State<SuggestionListPage> createState() => _SuggestionListPageState();

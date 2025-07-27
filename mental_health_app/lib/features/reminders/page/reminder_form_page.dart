@@ -8,7 +8,7 @@ import 'package:intl/intl.dart'; // For date formatting
 class ReminderFormPage extends StatefulWidget {
   final Reminder? reminder; // Null for new, not null for edit
 
-  const ReminderFormPage({Key? key, this.reminder}) : super(key: key);
+  const ReminderFormPage({super.key, this.reminder});
 
   @override
   State<ReminderFormPage> createState() => _ReminderFormPageState();

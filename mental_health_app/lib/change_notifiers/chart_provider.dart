@@ -16,47 +16,40 @@ class ChartProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  Future<void> fetchEmotionChartData(BuildContext context) async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
+  // lib/change_notifiers/chart_provider.dart
+  Future<void> fetchEmotionChartData(BuildContext context, {required int days}) async {
+    if (!_isLoading) {
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+    }
 
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final userId = authProvider.userId; // Get user ID from AuthProvider
+      final userId = authProvider.userId;
+      final firebaseToken = authProvider.firebaseToken;  // Lấy token từ authProvider
 
-      if (userId == null) {
-        _errorMessage = "User not logged in.";
-        _isLoading = false;
-        notifyListeners();
-        return;
+      if (userId == null || firebaseToken == null) {
+        throw Exception('User not authenticated');
       }
 
-      _emotionChartData = await _chartService.getEmotionsOverTime(userId);
-    } catch (e) {
-      _errorMessage = 'Error fetching chart data: $e';
-      print('Error fetching chart data: $e');
-    } finally {
-      _isLoading = false;
+      // Truyền cả userId và firebaseToken
+      final data = await _chartService.getEmotionsOverTime(userId, firebaseToken, days: days);
+      
+      if (data != _emotionChartData) {
+        _emotionChartData = data;
+        _errorMessage = null;
+        notifyListeners();
+      }
+    } on Exception catch (e) {
+      _errorMessage = e.toString();
+      debugPrint('Chart Error: $e');
       notifyListeners();
+    } finally {
+      if (_isLoading) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 }
-
-// // Placeholder for AuthProvider if not provided by user
-// class AuthProvider with ChangeNotifier {
-//   String? _currentUserId = 'test_user_id'; // Replace with actual user ID logic
-
-//   String? get currentUserId => _currentUserId;
-
-//   // Example method to simulate login and set user ID
-//   void login(String userId) {
-//     _currentUserId = userId;
-//     notifyListeners();
-//   }
-
-//   void logout() {
-//     _currentUserId = null;
-//     notifyListeners();
-//   }
-// }

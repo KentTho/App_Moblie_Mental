@@ -21,77 +21,54 @@ class _RegisterPageState extends State<RegisterPage> {
   TextEditingController fullName = TextEditingController();
   TextEditingController confirmPassword = TextEditingController();
 
-  Future<void> signUp() async {
-    if (fullName.text.isEmpty || email.text.isEmpty || password.text.isEmpty || confirmPassword.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Please fill in all fields")),
-      );
-      return;
-    }
+// lib/features/auth/page/register_page.dart
+Future<void> signUp() async {
+  try {
+    // 1. Tạo tài khoản Firebase
+    final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      email: email.text,
+      password: password.text,
+    );
 
-    if (password.text != confirmPassword.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Passwords do not match")),
-      );
-      return;
-    }
+    // 2. Cập nhật displayName
+    await userCredential.user?.updateDisplayName(fullName.text);
+    await userCredential.user?.reload();
 
-    try {
-      // Tạo tài khoản Firebase
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: email.text,
-        password: password.text,
-      );
+    // 3. Lấy Firebase Token
+    final token = await userCredential.user?.getIdToken();
+    if (token == null) throw Exception('Failed to get Firebase token');
 
-      final user = FirebaseAuth.instance.currentUser;
-      // ✅ Cập nhật full name vào Firebase
-          if (user != null) {
-      await user.updateDisplayName(fullName.text);
-      await user.reload();
-      print("Updated displayName: ${FirebaseAuth.instance.currentUser?.displayName}");
-      final dio = Dio();
-      final response = await dio.post(
-        'http://10.0.2.2:8000/user/firebase',
-        data: {
-          'email': user.email,
-          'uid': user.uid,
-          'full_name': fullName.text,
-        },
-      );
+    // 4. Đăng ký user với backend
+    final dio = Dio();
+    final response = await dio.post(
+      'http://10.0.2.2:8000/user/firebase',
+      options: Options(headers: {
+        "Authorization": "Bearer $token" // Thêm token
+      }),
+      data: {
+        'email': email.text,
+        'uid': userCredential.user?.uid,
+        'full_name': fullName.text,
+      },
+    );
 
-      // ✅ Lấy userId từ backend trả về
-      if (response.statusCode == 200) {
-        final data = response.data;
-        final userId = data['id'] ?? data['user_id'];
-        if (userId != null) {
-          Provider.of<AuthProvider>(context, listen: false).setUserId(userId.toString());
-          print("Đã lưu user đăng ký với ID: $userId");
-        }
-      }
-    }
+    // 5. Lưu thông tin vào AuthProvider
+    Provider.of<AuthProvider>(context, listen: false).setUserId(
+      userCredential.user!.uid,
+      token,
+    );
 
-
-      // ✅ Chuyển trang khi thành công
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Account created! You can now login.')),
-      );
-      // Navigator.pushReplacement(
-      //   context,
-      //   MaterialPageRoute(builder: (_) => const Login()),
-      // );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
-    }
-
-    // ✅ Chuyển sang trang VerifyEmailPage thay vì Login
+    // 6. Chuyển đến trang xác thực email
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const VerifyEmailPage()),
     );
-
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error: ${e.toString()}')),
+    );
   }
+}
 
   @override
   Widget build(BuildContext context) {

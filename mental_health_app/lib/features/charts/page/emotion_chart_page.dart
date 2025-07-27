@@ -7,28 +7,50 @@ import 'package:mental_health_app/models/emotion_chart_model.dart';
 // Assuming you'll add fl_chart to your pubspec.yaml
 
 class EmotionChartPage extends StatefulWidget {
-  const EmotionChartPage({Key? key}) : super(key: key);
+  const EmotionChartPage({super.key});
 
   @override
   State<EmotionChartPage> createState() => _EmotionChartPageState();
 }
 
 class _EmotionChartPageState extends State<EmotionChartPage> {
+  int selectedDays = 30; // Thêm tuỳ chọn số ngày
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<ChartProvider>(context, listen: false).fetchEmotionChartData(context);
-    });
+    _fetchData();
   }
+
+  void _fetchData() {
+    Provider.of<ChartProvider>(context, listen: false)
+      .fetchEmotionChartData(context, days: selectedDays);
+  }
+
 
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Emotional Trends'),
-        backgroundColor: Colors.deepPurple,
+        title: const Text('Thống kê cảm xúc'),
+        actions: [
+          DropdownButton<int>(
+            value: selectedDays,
+            items: [7, 14, 30, 90].map((days) =>
+              DropdownMenuItem(
+                value: days,
+                child: Text('$days ngày'),
+              )
+            ).toList(),
+            onChanged: (value) {
+              setState(() {
+                selectedDays = value!;
+                _fetchData();
+              });
+            },
+          )
+        ],
       ),
       body: Consumer<ChartProvider>(
         builder: (context, chartProvider, child) {
@@ -113,7 +135,7 @@ class _EmotionChartPageState extends State<EmotionChartPage> {
                                   style: TextStyle(fontSize: 14, color: Colors.grey[700]),
                                 ),
                               ),
-                            ).toList(),
+                            ),
                             if (dataPoint.emotionCounts.isEmpty)
                               const Text(
                                 'No specific emotions recorded for this day.',
@@ -145,121 +167,158 @@ extension StringExtension on String {
 class EmotionLineChart extends StatelessWidget {
   final List<EmotionDataPoint> data;
 
-  const EmotionLineChart({Key? key, required this.data}) : super(key: key);
+  const EmotionLineChart({super.key, required this.data});
 
   @override
   Widget build(BuildContext context) {
-    // Map emotions to unique colors
-    final Map<String, Color> emotionColors = {
-      'joy': Colors.yellow.shade700,
-      'sadness': Colors.blue.shade700,
-      'anger': Colors.red.shade700,
-      'fear': Colors.purple.shade700,
-      'surprise': Colors.orange.shade700,
-      'disgust': Colors.green.shade700,
-      'calm': Colors.teal.shade700,
-      'excitement': Colors.pink.shade700,
-      'neutral': Colors.grey.shade700,
+    // Sắp xếp data theo ngày
+    final sortedData = [...data]..sort((a, b) => a.date.compareTo(b.date));
+
+    // Map màu sắc cho cảm xúc
+    final emotionColors = {
+      'joy': Colors.amber,
+      'sadness': Colors.blue,
+      'anger': Colors.red,
+      'fear': Colors.purple,
+      'surprise': Colors.orange,
+      'disgust': Colors.green,
+      'calm': Colors.teal,
+      'excitement': Colors.pink,
+      'neutral': Colors.grey,
     };
 
-    // Get all unique emotions present in the data
-    final Set<String> allEmotions = data.fold<Set<String>>(
-      {},
-      (previousValue, element) => previousValue..addAll(element.emotionCounts.keys),
-    );
+    // Lấy tất cả cảm xúc duy nhất
+    final allEmotions = sortedData
+        .expand((dp) => dp.emotionCounts.keys)
+        .toSet()
+        .toList();
 
-    // Create a list of LineChartBarData for each emotion
-    final List<LineChartBarData> lineBarsData = allEmotions.map((emotion) {
+    // Tạo legend
+    final legends = allEmotions.map((emotion) => 
+      Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 12,
+            height: 12,
+            color: emotionColors[emotion],
+          ),
+          const SizedBox(width: 4),
+          Text(emotion),
+        ],
+      ),
+    ).toList();
+
+    // Tạo dữ liệu biểu đồ
+    final lineBarsData = allEmotions.map((emotion) {
       return LineChartBarData(
-        spots: data.asMap().entries.map((entry) {
-          final int index = entry.key;
-          final EmotionDataPoint dataPoint = entry.value;
-          return FlSpot(index.toDouble(), dataPoint.emotionCounts[emotion]?.toDouble() ?? 0);
+        spots: sortedData.map((dp) {
+          return FlSpot(
+            sortedData.indexOf(dp).toDouble(),
+            dp.emotionCounts[emotion]?.toDouble() ?? 0,
+          );
         }).toList(),
         isCurved: true,
-        color: emotionColors[emotion] ?? Colors.black, // Default to black if color not found
+        color: emotionColors[emotion] ?? Colors.black,
         barWidth: 3,
         dotData: const FlDotData(show: false),
         belowBarData: BarAreaData(show: false),
       );
     }).toList();
 
-    // Determine min/max X and Y values for the chart
-    final double minX = 0;
-    final double maxX = (data.length - 1).toDouble();
-    final double minY = 0;
-    final double maxY = data.fold<int>(0, (max, dp) => max > dp.emotionCounts.values.fold<int>(0, (a, b) => a > b ? a : b) ? max : dp.emotionCounts.values.fold<int>(0, (a, b) => a > b ? a : b)).toDouble() + 1; // Max count + 1 for padding
+    // Tính toán min/max
+    final maxY = sortedData.fold<double>(0, (max, dp) {
+      final maxEmotion = dp.emotionCounts.values.fold<int>(0, (a, b) => a > b ? a : b);
+      return max > maxEmotion ? max : maxEmotion.toDouble();
+    }) + 1;
 
-    return LineChart(
-      LineChartData(
-        gridData: const FlGridData(show: true),
-        titlesData: FlTitlesData(
-          show: true,
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 30,
-              getTitlesWidget: (value, meta) {
-                final index = value.toInt();
-                if (index >= 0 && index < data.length) {
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: Text(
-                      data[index].date.day.toString(), // Show day of month
-                      style: const TextStyle(color: Colors.grey, fontSize: 10),
-                    ),
-                  );
-                }
-                return const Text('');
-              },
+    return Column(
+      children: [
+        // Legend
+        Wrap(
+          spacing: 12,
+          runSpacing: 4,
+          children: legends,
+        ),
+        const SizedBox(height: 16),
+        // Chart
+        SizedBox(
+          height: 300,
+          child: LineChart(
+            LineChartData(
+              gridData: const FlGridData(show: true),
+              titlesData: FlTitlesData(
+                show: true,
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 30,
+                    getTitlesWidget: (value, meta) {
+                      final index = value.toInt();
+                      if (index >= 0 && index < sortedData.length) {
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            sortedData[index].date.day.toString(),
+                            style: const TextStyle(color: Colors.grey, fontSize: 10),
+                          ),
+                        );
+                      }
+                      return const Text('');
+                    },
+                  ),
+                ),
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 40,
+                    getTitlesWidget: (value, meta) {
+                      return Text(
+                        value.toInt().toString(),
+                        style: const TextStyle(color: Colors.grey, fontSize: 10),
+                      );
+                    },
+                  ),
+                ),
+                topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              ),
+              borderData: FlBorderData(
+                show: true,
+                border: Border.all(color: const Color(0xff37434d), width: 1),
+              ),
+              minX: 0,
+              maxX: (sortedData.length - 1).toDouble(),
+              minY: 0,
+              maxY: maxY,
+              lineBarsData: lineBarsData,
+              lineTouchData: LineTouchData(
+                touchTooltipData: LineTouchTooltipData(
+                  getTooltipItems: (touchedSpots) {
+                    return touchedSpots.map((spot) {
+                      final dataPoint = sortedData[spot.x.toInt()];
+                      final emotion = allEmotions[spot.barIndex];
+                      return LineTooltipItem(
+                        '${dataPoint.formattedDate}\n',
+                        const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                        children: [
+                          TextSpan(
+                            text: '${emotion.capitalize()}: ${spot.y.toInt()}',
+                            style: TextStyle(
+                              color: emotionColors[emotion] ?? Colors.white,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      );
+                    }).toList();
+                  },
+                ),
+              ),
             ),
           ),
-          leftTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 40,
-              getTitlesWidget: (value, meta) {
-                return Text(
-                  value.toInt().toString(),
-                  style: const TextStyle(color: Colors.grey, fontSize: 10),
-                );
-              },
-            ),
-          ),
-          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
         ),
-        borderData: FlBorderData(
-          show: true,
-          border: Border.all(color: const Color(0xff37434d), width: 1),
-        ),
-        minX: minX,
-        maxX: maxX,
-        minY: minY,
-        maxY: maxY,
-        lineBarsData: lineBarsData,
-        lineTouchData: LineTouchData(
-          touchTooltipData: LineTouchTooltipData(
-            getTooltipItems: (touchedSpots) {
-              return touchedSpots.map((LineBarSpot touchedSpot) {
-                final flSpot = touchedSpot;
-                final dataPoint = data[flSpot.x.toInt()];
-                final emotion = allEmotions.elementAt(touchedSpot.barIndex); // Get emotion from bar index
-                return LineTooltipItem(
-                  '${dataPoint.formattedDate}n',
-                  const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                  children: [
-                    TextSpan(
-                      text: '${emotion.capitalize()}: ${flSpot.y.toInt()}',
-                      style: TextStyle(color: emotionColors[emotion] ?? Colors.white, fontSize: 12),
-                    ),
-                  ],
-                );
-              }).toList();
-            },
-          ),
-        ),
-      ),
+      ],
     );
   }
 }

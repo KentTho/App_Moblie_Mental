@@ -27,107 +27,162 @@ class _LoginState extends State<Login> {
   bool isLoading = false;
 
 
-  Future<void> signIn() async {
+  // lib/features/auth/page/login.dart
+Future<void> signIn() async {
+  if (!mounted) return;
+  setState(() => isLoading = true);
+
+  try {
+    // 1. Đăng nhập bằng Firebase
+    final userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+      email: email.text,
+      password: password.text,
+    );
+
+    // 2. Lấy Firebase Token
+    final token = await userCredential.user?.getIdToken();
+    if (token == null) throw Exception('Failed to get Firebase token');
+
+    // 3. Đồng bộ thông tin user với backend
+    final response = await http.post(
+      Uri.parse("http://10.0.2.2:8000/user/firebase"),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token" // Thêm token vào header
+      },
+      body: jsonEncode({
+        "email": userCredential.user?.email,
+        "uid": userCredential.user?.uid,
+        "full_name": userCredential.user?.displayName ?? "Người dùng",
+      }),
+    );
+
+    // 4. Lưu thông tin user vào AuthProvider
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    authProvider.setUserId(
+      userCredential.user!.uid,
+      token, // Truyền cả token
+    );
+
+    // 5. Chuyển hướng
     if (!mounted) return;
-    setState(() => isLoading = true);
-
-    try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: email.text,
-        password: password.text,
-      );
-
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        await http.post(
-          Uri.parse("http://10.0.2.2:8000/user/firebase"),
-          headers: {"Content-Type": "application/json"},
-          body: jsonEncode({
-            "email": user.email,
-            "uid": user.uid,
-            "full_name": user.displayName ?? "Người dùng",
-          }),
-        );
-
-        final userId = await AuthService.fetchUserId(user.uid);
-        Provider.of<AuthProvider>(context, listen: false).setUserId(userId);
-        print("🌟 user_id: $userId");
-
-        if (!mounted) return;
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const Homepage()));
-        return;
-      }
-    } on FirebaseAuthException catch (e) {
-      if (!mounted) return;
-      Get.snackbar("Error msg", e.code);
-    } catch (e) {
-      if (!mounted) return;
-      Get.snackbar("Error msg", e.toString());
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Login failed: $e')),
-      );
-    }
-
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const Homepage()));
+  } on FirebaseAuthException catch (e) {
+    Get.snackbar("Error", e.message ?? "Login failed");
+  } finally {
     if (mounted) setState(() => isLoading = false);
   }
+}
 
   Future<void> loginWithGoogle() async {
-    try {
-      final GoogleAuthProvider googleProvider = GoogleAuthProvider();
-      await FirebaseAuth.instance.signInWithProvider(googleProvider);
+  if (!mounted) return;
+  setState(() => isLoading = true);
 
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        await http.post(
-          Uri.parse("http://10.0.2.2:8000/user/firebase"),
-          headers: {"Content-Type": "application/json"},
-          body: jsonEncode({
-            "email": user.email,
-            "uid": user.uid,
-            "full_name": user.displayName ?? "Google User",
-          }),
-        );
+  try {
+    // 1. Đăng nhập bằng Google
+    final googleProvider = GoogleAuthProvider();
+    final userCredential = await FirebaseAuth.instance.signInWithProvider(googleProvider);
+    final user = userCredential.user;
+    
+    if (user != null) {
+      // 2. Lấy Firebase token
+      final token = await user.getIdToken();
+      if (token == null) throw Exception('Failed to get Google auth token');
 
-        final userId = await AuthService.fetchUserId(user.uid);
-        Provider.of<AuthProvider>(context, listen: false).setUserId(userId);
+      // 3. Đồng bộ thông tin user với backend
+      final response = await http.post(
+        Uri.parse("http://10.0.2.2:8000/user/firebase"),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token" // Thêm token vào header
+        },
+        body: jsonEncode({
+          "email": user.email,
+          "uid": user.uid,
+          "full_name": user.displayName ?? "Google User",
+        }),
+      );
 
-        if (!mounted) return;
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const Homepage()));
-      }
-    } catch (e) {
+      // 4. Lưu thông tin vào AuthProvider
+      Provider.of<AuthProvider>(context, listen: false).setUserId(
+        user.uid,
+        token,
+      );
+
+      // 5. Chuyển hướng
       if (!mounted) return;
-      Get.snackbar("Google Sign-In Failed", e.toString());
+      Navigator.pushReplacement(
+        context, 
+        MaterialPageRoute(builder: (_) => const Homepage())
+      );
     }
+  } catch (e) {
+    if (!mounted) return;
+    Get.snackbar(
+      "Google Sign-In Failed", 
+      e.toString(),
+      snackPosition: SnackPosition.BOTTOM,
+    );
+    debugPrint('Google login error: $e');
+  } finally {
+    if (mounted) setState(() => isLoading = false);
   }
+}
 
-  Future<void> loginWithGitHub() async {
-    try {
-      final GithubAuthProvider githubProvider = GithubAuthProvider();
-      await FirebaseAuth.instance.signInWithProvider(githubProvider);
+Future<void> loginWithGitHub() async {
+  if (!mounted) return;
+  setState(() => isLoading = true);
 
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        await http.post(
-          Uri.parse("http://10.0.2.2:8000/user/firebase"),
-          headers: {"Content-Type": "application/json"},
-          body: jsonEncode({
-            "email": user.email,
-            "uid": user.uid,
-            "full_name": user.displayName ?? "GitHub User",
-          }),
-        );
+  try {
+    // 1. Đăng nhập bằng GitHub
+    final githubProvider = GithubAuthProvider();
+    final userCredential = await FirebaseAuth.instance.signInWithProvider(githubProvider);
+    final user = userCredential.user;
+    
+    if (user != null) {
+      // 2. Lấy Firebase token
+      final token = await user.getIdToken();
+      if (token == null) throw Exception('Failed to get GitHub auth token');
 
-        final userId = await AuthService.fetchUserId(user.uid);
-        Provider.of<AuthProvider>(context, listen: false).setUserId(userId);
+      // 3. Đồng bộ thông tin user với backend
+      final response = await http.post(
+        Uri.parse("http://10.0.2.2:8000/user/firebase"),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token" // Thêm token vào header
+        },
+        body: jsonEncode({
+          "email": user.email,
+          "uid": user.uid,
+          "full_name": user.displayName ?? "GitHub User",
+        }),
+      );
 
-        if (!mounted) return;
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const Homepage()));
-      }
-    } catch (e) {
+      // 4. Lưu thông tin vào AuthProvider
+      Provider.of<AuthProvider>(context, listen: false).setUserId(
+        user.uid,
+        token,
+      );
+
+      // 5. Chuyển hướng
       if (!mounted) return;
-      Get.snackbar("GitHub Sign-In Failed", e.toString());
+      Navigator.pushReplacement(
+        context, 
+        MaterialPageRoute(builder: (_) => const Homepage())
+      );
     }
+  } catch (e) {
+    if (!mounted) return;
+    Get.snackbar(
+      "GitHub Sign-In Failed", 
+      e.toString(),
+      snackPosition: SnackPosition.BOTTOM,
+    );
+    debugPrint('GitHub login error: $e');
+  } finally {
+    if (mounted) setState(() => isLoading = false);
   }
+}
 
 
   @override

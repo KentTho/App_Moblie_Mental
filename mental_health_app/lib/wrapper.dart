@@ -24,12 +24,18 @@ class Wrapper extends StatelessWidget {
         // ✅ Đã đăng nhập
         if (snapshot.hasData && snapshot.data != null) {
           final user = snapshot.data!;
-          final authProvider = Provider.of<AuthProvider>(context, listen: false);
+          Provider.of<AuthProvider>(context, listen: false);
 
           // 🔐 Gán userId vào AuthProvider
           if (snapshot.hasData) {
+            // lib/wrapper.dart
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              context.read<AuthProvider>().setUserId(snapshot.data!.uid);
+              final user = snapshot.data!;
+              user.getIdToken().then((token) {
+                if (token != null) {
+                  context.read<AuthProvider>().setUserId(user.uid, token);
+                }
+              });
             });
           }
 
