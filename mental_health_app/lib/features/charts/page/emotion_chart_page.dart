@@ -1,10 +1,8 @@
-// lib/features/charts/page/emotion_chart_page.dart
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:mental_health_app/change_notifiers/chart_provider.dart';
 import 'package:mental_health_app/models/emotion_chart_model.dart';
-// Assuming you'll add fl_chart to your pubspec.yaml
+import 'emotion_line_chart.dart';
 
 class EmotionChartPage extends StatefulWidget {
   const EmotionChartPage({super.key});
@@ -14,311 +12,420 @@ class EmotionChartPage extends StatefulWidget {
 }
 
 class _EmotionChartPageState extends State<EmotionChartPage> {
-  int selectedDays = 30; // Thêm tuỳ chọn số ngày
+  int selectedDays = 3; // Mặc định 7 ngày
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _fetchData();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadData());
   }
 
-  void _fetchData() {
-    Provider.of<ChartProvider>(context, listen: false)
-      .fetchEmotionChartData(context, days: selectedDays);
+  Future<void> _loadData() async {
+    if (_isLoading) return;
+    setState(() => _isLoading = true);
+    try {
+      final provider = Provider.of<ChartProvider>(context, listen: false);
+      await provider.fetchEmotionChartData(context, days: selectedDays);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
-
+  void _handleDaysChange(int? value) {
+    if (value != null) {
+      setState(() => selectedDays = value);
+      _loadData();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Thống kê cảm xúc'),
-        actions: [
-          DropdownButton<int>(
-            value: selectedDays,
-            items: [7, 14, 30, 90].map((days) =>
-              DropdownMenuItem(
-                value: days,
-                child: Text('$days ngày'),
-              )
-            ).toList(),
-            onChanged: (value) {
-              setState(() {
-                selectedDays = value!;
-                _fetchData();
-              });
-            },
-          )
+        title: const Text('Biểu đồ Cảm xúc'),
+        centerTitle: true,
+        actions: [_buildTimeRangeDropdown()],
+      ),
+      body: _buildBodyContent(),
+    );
+  }
+
+  Widget _buildTimeRangeDropdown() {
+    return Container(
+      margin: const EdgeInsets.only(right: 16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<int>(
+          value: selectedDays,
+          icon: const Icon(Icons.arrow_drop_down, color: Colors.deepPurple),
+          items: [1, 3, 7, 14].map((days) => DropdownMenuItem(
+            value: days,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Text('$days ngày', style: const TextStyle(fontSize: 14)),
+            ),
+          )).toList(),
+          onChanged: _handleDaysChange,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBodyContent() {
+    return Consumer<ChartProvider>(
+      builder: (context, chartProvider, _) {
+        if (_isLoading) return _buildLoadingState();
+        if (chartProvider.errorMessage != null) return _buildErrorState(chartProvider);
+        if (chartProvider.emotionChartData?.data.isEmpty ?? true) return _buildEmptyState();
+        
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              _buildEmotionChartCard(chartProvider),
+              const SizedBox(height: 20),
+              _buildStatsSummary(chartProvider),
+              const SizedBox(height: 20),
+              _buildDailyEmotionList(chartProvider),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(),
+          SizedBox(height: 16),
+          Text('Đang tải dữ liệu cảm xúc...', style: TextStyle(color: Colors.grey)),
         ],
       ),
-      body: Consumer<ChartProvider>(
-        builder: (context, chartProvider, child) {
-          if (chartProvider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (chartProvider.errorMessage != null) {
-            return Center(
-              child: Text(
-                'Error: ${chartProvider.errorMessage}',
-                style: const TextStyle(color: Colors.red),
-              ),
-            );
-          }
-          if (chartProvider.emotionChartData == null || chartProvider.emotionChartData!.data.isEmpty) {
-            return const Center(
-              child: Text(
-                'No emotion data available yet. Start journaling!',
-                style: TextStyle(fontSize: 16, color: Colors.grey),
-              ),
-            );
-          }
+    );
+  }
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildErrorState(ChartProvider provider) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.error_outline, color: Colors.red, size: 48),
+          const SizedBox(height: 16),
+          Text(
+            'Lỗi khi tải dữ liệu: ${provider.errorMessage}',
+            style: const TextStyle(color: Colors.red),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: _loadData,
+            child: const Text('Thử lại'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset('assets/images/empty_chart.png', width: 150),
+          const SizedBox(height: 20),
+          const Text(
+            'Chưa có dữ liệu cảm xúc',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 40),
+            child: Text(
+              'Hãy bắt đầu ghi chép cảm xúc hàng ngày để xem thống kê',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey),
+            ),
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton.icon(
+            onPressed: () => Navigator.pushNamed(context, '/journal'),
+            icon: const Icon(Icons.edit),
+            label: const Text('Ghi chép ngay'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.deepPurple,
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmotionChartCard(ChartProvider provider) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                const Text(
-                  'Your Emotional Journey Over Time',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.deepPurple),
-                ),
-                const SizedBox(height: 20),
-                Container(
-                  height: 300,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.2),
-                        spreadRadius: 2,
-                        blurRadius: 5,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
+                const Icon(Icons.insights, color: Colors.deepPurple),
+                const SizedBox(width: 8),
+                Text(
+                  'Xu hướng cảm xúc ($selectedDays ngày)',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
                   ),
-                  child: EmotionLineChart(data: chartProvider.emotionChartData!.data),
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Daily Emotion Breakdown:',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.deepPurple),
-                ),
-                const SizedBox(height: 10),
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: chartProvider.emotionChartData!.data.length,
-                  itemBuilder: (context, index) {
-                    final dataPoint = chartProvider.emotionChartData!.data[index];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(vertical: 8),
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              dataPoint.formattedDate,
-                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 8),
-                            ...dataPoint.emotionCounts.entries.map((entry) =>
-                              Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 2.0),
-                                child: Text(
-                                  '${entry.key.capitalize()}: ${entry.value} notes',
-                                  style: TextStyle(fontSize: 14, color: Colors.grey[700]),
-                                ),
-                              ),
-                            ),
-                            if (dataPoint.emotionCounts.isEmpty)
-                              const Text(
-                                'No specific emotions recorded for this day.',
-                                style: TextStyle(fontSize: 14, fontStyle: FontStyle.italic, color: Colors.grey),
-                              ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
                 ),
               ],
             ),
-          );
-        },
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 280,
+              child: EmotionLineChart(data: provider.emotionChartData!.data),
+            ),
+          ],
+        ),
       ),
     );
   }
-}
 
-// Helper extension for string capitalization
-extension StringExtension on String {
-  String capitalize() {
-    return "${this[0].toUpperCase()}${substring(1)}";
-  }
-}
-
-// Simplified Emotion Line Chart using fl_chart
-class EmotionLineChart extends StatelessWidget {
-  final List<EmotionDataPoint> data;
-
-  const EmotionLineChart({super.key, required this.data});
-
-  @override
-  Widget build(BuildContext context) {
-    // Sắp xếp data theo ngày
-    final sortedData = [...data]..sort((a, b) => a.date.compareTo(b.date));
-
-    // Map màu sắc cho cảm xúc
-    final emotionColors = {
-      'joy': Colors.amber,
-      'sadness': Colors.blue,
-      'anger': Colors.red,
-      'fear': Colors.purple,
-      'surprise': Colors.orange,
-      'disgust': Colors.green,
-      'calm': Colors.teal,
-      'excitement': Colors.pink,
-      'neutral': Colors.grey,
-    };
-
-    // Lấy tất cả cảm xúc duy nhất
-    final allEmotions = sortedData
-        .expand((dp) => dp.emotionCounts.keys)
-        .toSet()
-        .toList();
-
-    // Tạo legend
-    final legends = allEmotions.map((emotion) => 
-      Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 12,
-            height: 12,
-            color: emotionColors[emotion],
-          ),
-          const SizedBox(width: 4),
-          Text(emotion),
-        ],
-      ),
-    ).toList();
-
-    // Tạo dữ liệu biểu đồ
-    final lineBarsData = allEmotions.map((emotion) {
-      return LineChartBarData(
-        spots: sortedData.map((dp) {
-          return FlSpot(
-            sortedData.indexOf(dp).toDouble(),
-            dp.emotionCounts[emotion]?.toDouble() ?? 0,
-          );
-        }).toList(),
-        isCurved: true,
-        color: emotionColors[emotion] ?? Colors.black,
-        barWidth: 3,
-        dotData: const FlDotData(show: false),
-        belowBarData: BarAreaData(show: false),
-      );
-    }).toList();
-
-    // Tính toán min/max
-    final maxY = sortedData.fold<double>(0, (max, dp) {
-      final maxEmotion = dp.emotionCounts.values.fold<int>(0, (a, b) => a > b ? a : b);
-      return max > maxEmotion ? max : maxEmotion.toDouble();
-    }) + 1;
-
-    return Column(
-      children: [
-        // Legend
-        Wrap(
-          spacing: 12,
-          runSpacing: 4,
-          children: legends,
+  Widget _buildStatsSummary(ChartProvider provider) {
+    final dominantEmotion = _getDominantEmotion(provider.emotionChartData!.data);
+    
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            const Row(
+              children: [
+                Icon(Icons.analytics, color: Colors.deepPurple),
+                SizedBox(width: 8),
+                Text(
+                  'Tổng quan cảm xúc',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                _buildStatItem(
+                  'Cảm xúc chủ đạo',
+                  StringExtension(dominantEmotion.name).capitalize(),
+                  _getEmotionColor(dominantEmotion.name),
+                  dominantEmotion.count,
+                ),
+                const SizedBox(width: 16),
+                _buildStatItem(
+                  'Ngày tích cực',
+                  _countPositiveDays(provider.emotionChartData!.data).toString(),
+                  Colors.green,
+                  null,
+                ),
+              ],
+            ),
+          ],
         ),
-        const SizedBox(height: 16),
-        // Chart
-        SizedBox(
-          height: 300,
-          child: LineChart(
-            LineChartData(
-              gridData: const FlGridData(show: true),
-              titlesData: FlTitlesData(
-                show: true,
-                bottomTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    reservedSize: 30,
-                    getTitlesWidget: (value, meta) {
-                      final index = value.toInt();
-                      if (index >= 0 && index < sortedData.length) {
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: Text(
-                            sortedData[index].date.day.toString(),
-                            style: const TextStyle(color: Colors.grey, fontSize: 10),
-                          ),
-                        );
-                      }
-                      return const Text('');
-                    },
-                  ),
-                ),
-                leftTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    reservedSize: 40,
-                    getTitlesWidget: (value, meta) {
-                      return Text(
-                        value.toInt().toString(),
-                        style: const TextStyle(color: Colors.grey, fontSize: 10),
-                      );
-                    },
-                  ),
-                ),
-                topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-              ),
-              borderData: FlBorderData(
-                show: true,
-                border: Border.all(color: const Color(0xff37434d), width: 1),
-              ),
-              minX: 0,
-              maxX: (sortedData.length - 1).toDouble(),
-              minY: 0,
-              maxY: maxY,
-              lineBarsData: lineBarsData,
-              lineTouchData: LineTouchData(
-                touchTooltipData: LineTouchTooltipData(
-                  getTooltipItems: (touchedSpots) {
-                    return touchedSpots.map((spot) {
-                      final dataPoint = sortedData[spot.x.toInt()];
-                      final emotion = allEmotions[spot.barIndex];
-                      return LineTooltipItem(
-                        '${dataPoint.formattedDate}\n',
-                        const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                        children: [
-                          TextSpan(
-                            text: '${emotion.capitalize()}: ${spot.y.toInt()}',
-                            style: TextStyle(
-                              color: emotionColors[emotion] ?? Colors.white,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      );
-                    }).toList();
-                  },
-                ),
+      ),
+    );
+  }
+
+  Widget _buildStatItem(String title, String value, Color color, int? count) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: color.withOpacity(0.3)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey[700],
               ),
             ),
-          ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: color,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                if (count != null) ...[
+                  const SizedBox(width: 4),
+                  Text(
+                    '($count lần)',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDailyEmotionList(ChartProvider provider) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Row(
+          children: [
+            Icon(Icons.calendar_today, color: Colors.deepPurple, size: 18),
+            SizedBox(width: 8),
+            Text(
+              'Chi tiết theo ngày',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        ListView.separated(
+          physics: const NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
+          itemCount: provider.emotionChartData!.data.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 8),
+          itemBuilder: (context, index) {
+            final dataPoint = provider.emotionChartData!.data[index];
+            return _buildDayEmotionCard(dataPoint);
+          },
         ),
       ],
     );
+  }
+
+  Widget _buildDayEmotionCard(EmotionDataPoint dataPoint) {
+    final isToday = dataPoint.date.isAtSameMomentAs(DateTime.now().toLocal());
+    
+    return Card(
+      elevation: 1,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      child: ExpansionTile(
+        title: Text(
+          dataPoint.formattedDate,
+          style: TextStyle(
+            fontWeight: FontWeight.w500,
+            color: isToday ? Colors.deepPurple : Colors.black,
+          ),
+        ),
+        leading: isToday 
+            ? const Icon(Icons.today, color: Colors.deepPurple)
+            : const Icon(Icons.calendar_today, size: 20),
+        childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+        children: [
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: dataPoint.emotionCounts.entries.map((entry) => Chip(
+              backgroundColor: _getEmotionColor(entry.key).withOpacity(0.2),
+              label: Text(
+                '${StringExtension(entry.key).capitalize()}: ${entry.value}',
+                style: TextStyle(
+                  color: Colors.grey[800],
+                  fontSize: 13,
+                ),
+              ),
+              avatar: CircleAvatar(
+                backgroundColor: _getEmotionColor(entry.key),
+                radius: 10,
+              ),
+            )).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Helper functions
+  DominantEmotion _getDominantEmotion(List<EmotionDataPoint> data) {
+    final emotionCounts = <String, int>{};
+    
+    for (final day in data) {
+      for (final entry in day.emotionCounts.entries) {
+        emotionCounts[entry.key] = (emotionCounts[entry.key] ?? 0) + entry.value;
+      }
+    }
+    
+    final dominantEntry = emotionCounts.entries.reduce(
+      (a, b) => a.value > b.value ? a : b
+    );
+    
+    return DominantEmotion(dominantEntry.key, dominantEntry.value);
+  }
+
+  int _countPositiveDays(List<EmotionDataPoint> data) {
+    const positiveEmotions = ['joy', 'excitement', 'calm'];
+    return data.where((day) {
+      final positiveCount = day.emotionCounts.entries
+          .where((e) => positiveEmotions.contains(e.key))
+          .fold(0, (sum, e) => sum + e.value);
+      return positiveCount > 0;
+    }).length;
+  }
+
+  Color _getEmotionColor(String emotion) {
+    switch (emotion.toLowerCase()) {
+      case 'joy': return const Color.fromARGB(255, 255, 251, 3); // green
+      case 'sadness': return const Color(0xFF2196F3); // blue
+      case 'anger': return const Color(0xFFF44336); // red
+      case 'fear': return const Color(0xFF9C27B0); // purple
+      case 'surprise': return const Color(0xFFFF9800); // orange
+      case 'disgust': return const Color(0xFF8BC34A); // light green
+      case 'calm': return const Color.fromARGB(255, 7, 238, 255); // cyan
+      case 'excitement': return const Color(0xFFE91E63); // pink
+      case 'enjoyment': return const Color.fromARGB(255, 140, 253, 95); // brown
+      default: return Colors.grey;
+    }
+  }
+}
+
+class DominantEmotion {
+  final String name;
+  final int count;
+
+  DominantEmotion(this.name, this.count);
+}
+
+extension StringExtension on String {
+  String capitalize() {
+    if (isEmpty) return this;
+    return "${this[0].toUpperCase()}${substring(1).toLowerCase()}";
   }
 }

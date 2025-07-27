@@ -7,7 +7,6 @@ import 'package:mental_health_app/features/auth/page/forgot.dart';
 import 'package:mental_health_app/features/auth/page/register_page.dart';
 import 'package:mental_health_app/features/home/homepage.dart';
 import 'package:http/http.dart' as http;
-import 'package:mental_health_app/services/auth_service.dart';
 import 'package:provider/provider.dart';
 import 'package:mental_health_app/change_notifiers/auth_provider.dart';
 
@@ -28,7 +27,7 @@ class _LoginState extends State<Login> {
 
 
   // lib/features/auth/page/login.dart
-Future<void> signIn() async {
+  Future<void> signIn() async {
   if (!mounted) return;
   setState(() => isLoading = true);
 
@@ -129,7 +128,7 @@ Future<void> signIn() async {
   }
 }
 
-Future<void> loginWithGitHub() async {
+  Future<void> loginWithGitHub() async {
   if (!mounted) return;
   setState(() => isLoading = true);
 

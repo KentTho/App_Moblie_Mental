@@ -18,38 +18,32 @@ class ChartProvider with ChangeNotifier {
 
   // lib/change_notifiers/chart_provider.dart
   Future<void> fetchEmotionChartData(BuildContext context, {required int days}) async {
-    if (!_isLoading) {
-      _isLoading = true;
-      _errorMessage = null;
-      notifyListeners();
-    }
+    if (_isLoading) return;
+    
+    _isLoading = true;
+    notifyListeners();
 
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final userId = authProvider.userId;
-      final firebaseToken = authProvider.firebaseToken;  // Lấy token từ authProvider
+      final token = authProvider.firebaseToken;
 
-      if (userId == null || firebaseToken == null) {
+      if (userId == null || token == null) {
         throw Exception('User not authenticated');
       }
 
-      // Truyền cả userId và firebaseToken
-      final data = await _chartService.getEmotionsOverTime(userId, firebaseToken, days: days);
+      final data = await _chartService.getEmotionsOverTime(userId, token, days: days);
       
-      if (data != _emotionChartData) {
-        _emotionChartData = data;
-        _errorMessage = null;
-        notifyListeners();
-      }
-    } on Exception catch (e) {
+      _emotionChartData = data;
+      _errorMessage = null;
+    } catch (e) {
       _errorMessage = e.toString();
       debugPrint('Chart Error: $e');
-      notifyListeners();
     } finally {
-      if (_isLoading) {
-        _isLoading = false;
+      _isLoading = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         notifyListeners();
-      }
+      });
     }
   }
 }

@@ -6,6 +6,8 @@ import 'package:mental_health_app/change_notifiers/chart_provider.dart';
 import 'package:mental_health_app/change_notifiers/chatbot_provider.dart';
 import 'package:mental_health_app/change_notifiers/new_note_controller.dart';
 import 'package:mental_health_app/change_notifiers/notes_provider.dart';
+import 'package:mental_health_app/services/api_service.dart';
+import 'package:mental_health_app/services/chatbot_service.dart';
 import 'package:mental_health_app/wrapper.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
@@ -28,7 +30,17 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => ChartProvider()),
-        ChangeNotifierProvider(create: (_) => ChatbotProvider()),
+        ChangeNotifierProvider(
+          create: (context) {
+            final authProvider = Provider.of<AuthProvider>(context, listen: false);
+            return ChatbotProvider(
+              chatbotService: ChatbotService(
+                apiService: ApiService(),
+                getToken: () => authProvider.firebaseToken ?? '',
+              ),
+            );
+          },
+        ),
         ChangeNotifierProvider(create: (_) => NotesProvider()),
         ChangeNotifierProvider(create: (_) => NewNoteController()),
       ],

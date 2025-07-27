@@ -4,6 +4,9 @@ from fastapi import FastAPI
 from dotenv import load_dotenv
 import sys
 import os
+
+from starlette.middleware.cors import CORSMiddleware
+
 # Import route cho xác thực người dùng và nhật ký cảm xúc
 # Import route
 from src.routes import auth, notes, charts, suggestions, reminders, chatbot
@@ -38,7 +41,13 @@ app = FastAPI(
     description="API cho ứng dụng sức khỏe tinh thần (Ghi nhật ký, xác thực, phân tích cảm xúc...)",
     version="1.0.0"
 )
-
+# CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 # -----------------------------------------
 # Kết nối các router (endpoints) vào ứng dụng FastAPI
 
