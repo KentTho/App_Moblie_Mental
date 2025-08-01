@@ -14,7 +14,7 @@ class ReminderService {
 
   Future<Reminder> createReminder(Reminder reminder) async {
     final response = await _apiService.post(
-      '/reminders', 
+       '/api/reminders/', // ✅ Thêm /api
       reminder.toJson(),
       headers: {'Authorization': 'Bearer ${_authProvider.firebaseToken}'},
     );
@@ -28,7 +28,7 @@ class ReminderService {
 
   Future<List<Reminder>> getUserReminders(String userId) async {
     final response = await _apiService.get(
-      '/reminders/user/$userId',
+      '/api/reminders/user/$userId', // ✅ Thêm /api
       headers: {'Authorization': 'Bearer ${_authProvider.firebaseToken}'},
     );
 
@@ -42,7 +42,7 @@ class ReminderService {
 
   Future<Reminder> getReminder(String reminderId) async {
     final response = await _apiService.get(
-      '/reminders/$reminderId',
+      '/api/reminders/$reminderId', // ✅ Thêm /api
       headers: {'Authorization': 'Bearer ${_authProvider.firebaseToken}'},
       );
 
@@ -54,7 +54,10 @@ class ReminderService {
   }
 
   Future<Reminder> updateReminder(String reminderId, Reminder reminder) async {
-    final response = await _apiService.put('/reminders/$reminderId', reminder.toUpdateJson());
+    final response = await _apiService.put(
+      '/api/reminders/$reminderId', // ✅ Thêm /api
+      reminder.toUpdateJson()
+    );
 
     if (response.statusCode == 200) {
       return Reminder.fromJson(json.decode(response.body));
@@ -64,7 +67,9 @@ class ReminderService {
   }
 
   Future<void> deleteReminder(String reminderId) async {
-    final response = await _apiService.delete('/reminders/$reminderId');
+    final response = await _apiService.delete(
+      '/api/reminders/$reminderId', // ✅ Thêm /api
+      );
 
     if (response.statusCode != 204) {
       throw Exception('Failed to delete reminder: ${response.body}');

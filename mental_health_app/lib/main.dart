@@ -6,6 +6,7 @@ import 'package:mental_health_app/change_notifiers/chart_provider.dart';
 import 'package:mental_health_app/change_notifiers/chatbot_provider.dart';
 import 'package:mental_health_app/change_notifiers/new_note_controller.dart';
 import 'package:mental_health_app/change_notifiers/notes_provider.dart';
+import 'package:mental_health_app/change_notifiers/reminder_provider.dart';
 import 'package:mental_health_app/services/api_service.dart';
 import 'package:mental_health_app/services/chatbot_service.dart';
 import 'package:mental_health_app/wrapper.dart';
@@ -41,6 +42,7 @@ void main() async {
             );
           },
         ),
+        ChangeNotifierProvider(create: (_) => ReminderProvider()),
         ChangeNotifierProvider(create: (_) => NotesProvider()),
         ChangeNotifierProvider(create: (_) => NewNoteController()),
       ],

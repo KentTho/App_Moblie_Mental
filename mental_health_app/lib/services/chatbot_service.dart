@@ -1,10 +1,8 @@
 // lib/services/chatbot_service.dart
 import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:mental_health_app/change_notifiers/auth_provider.dart';
 import 'package:mental_health_app/models/chatbot_model.dart';
 import 'package:mental_health_app/services/api_service.dart';
-import 'package:provider/provider.dart'; // Assuming this path
+// Assuming this path
 
 // lib/services/chatbot_service.dart
 class ChatbotService {
@@ -20,7 +18,7 @@ class ChatbotService {
   Future<ChatOutput> sendMessage(ChatInput chatInput) async {
     final token = _getToken(); // Lấy token khi gọi API
     final response = await _apiService.post(
-      '/chatbot/chat',
+      '/api/chatbot/chat',
       chatInput.toJson(),
       headers: {'Authorization': 'Bearer $token'},
     );

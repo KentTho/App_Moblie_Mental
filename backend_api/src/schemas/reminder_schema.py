@@ -10,7 +10,10 @@ class ReminderBase(BaseModel):
     is_active: Optional[bool] = True
 
 class ReminderCreate(ReminderBase):
-    user_id: str # User ID is required for creation
+    # user_id: str # User ID is required for creation
+    message: Optional[str] = None
+    scheduled_time: Optional[datetime] = None
+    is_active: Optional[bool] = None
 
 class ReminderUpdate(ReminderBase):
     # All fields are optional for update
@@ -19,7 +22,7 @@ class ReminderUpdate(ReminderBase):
     is_active: Optional[bool] = None
 
 class ReminderOut(ReminderBase):
-    id: str
+    id: UUID
     user_id: str
     created_at: datetime
     updated_at: datetime

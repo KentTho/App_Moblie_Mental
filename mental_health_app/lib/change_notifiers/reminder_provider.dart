@@ -6,7 +6,9 @@ import 'package:provider/provider.dart';
 import 'package:mental_health_app/change_notifiers/auth_provider.dart'; // Assuming this path
 
 class ReminderProvider with ChangeNotifier {
-  final ReminderService _reminderService;
+  late final ReminderService _reminderService;
+  bool _isInitialized = false;
+
   List<Reminder> _reminders = [];
   bool _isLoading = false;
   String? _errorMessage;
@@ -15,27 +17,40 @@ class ReminderProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-ReminderProvider(BuildContext context) 
-    : _reminderService = ReminderService(context);
+  ReminderProvider() {
+  }
 
+  void init(BuildContext context) {
+    if (!_isInitialized) {
+      _reminderService = ReminderService(context);
+      _isInitialized = true;
+    }
+  }
 
   Future<void> fetchReminders(BuildContext context) async {
+    print("⚙️ ReminderProvider: fetchReminders gọi");
+    if (!_isInitialized) {
+      print("❗ ReminderProvider chưa init, gọi init()");
+      init(context);
+    }
+
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final UserId = authProvider.userId;
+      final userId = authProvider.userId;
 
-      if (UserId == null) {
+      if (userId == null) {
         _errorMessage = "User not logged in.";
         _isLoading = false;
         notifyListeners();
         return;
       }
 
-      _reminders = await _reminderService.getUserReminders(UserId);
+      print("✅ Gọi ReminderService.getUserReminders");
+      _reminders = await _reminderService.getUserReminders(userId);
     } catch (e) {
       _errorMessage = 'Error fetching reminders: $e';
       print('Error fetching reminders: $e');
@@ -115,4 +130,5 @@ ReminderProvider(BuildContext context)
       notifyListeners();
     }
   }
+
 }

@@ -375,20 +375,25 @@ class _EmotionChartPageState extends State<EmotionChartPage> {
 
   // Helper functions
   DominantEmotion _getDominantEmotion(List<EmotionDataPoint> data) {
-    final emotionCounts = <String, int>{};
-    
-    for (final day in data) {
-      for (final entry in day.emotionCounts.entries) {
-        emotionCounts[entry.key] = (emotionCounts[entry.key] ?? 0) + entry.value;
-      }
+  if (data.isEmpty) return DominantEmotion('unknown', 0); // tránh reduce() lỗi
+
+  final emotionCounts = <String, int>{};
+
+  for (final day in data) {
+    for (final entry in day.emotionCounts.entries) {
+      emotionCounts[entry.key] = (emotionCounts[entry.key] ?? 0) + entry.value;
     }
-    
-    final dominantEntry = emotionCounts.entries.reduce(
-      (a, b) => a.value > b.value ? a : b
-    );
-    
-    return DominantEmotion(dominantEntry.key, dominantEntry.value);
   }
+
+  if (emotionCounts.isEmpty) return DominantEmotion('unknown', 0); // tránh reduce() lỗi
+
+  final dominantEntry = emotionCounts.entries.reduce(
+    (a, b) => a.value > b.value ? a : b,
+  );
+
+  return DominantEmotion(dominantEntry.key, dominantEntry.value);
+}
+
 
   int _countPositiveDays(List<EmotionDataPoint> data) {
     const positiveEmotions = ['joy', 'excitement', 'calm'];

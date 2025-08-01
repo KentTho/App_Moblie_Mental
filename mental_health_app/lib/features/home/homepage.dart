@@ -5,6 +5,7 @@ import 'package:mental_health_app/features/charts/page/emotion_chart_page.dart';
 import 'package:mental_health_app/features/chatbot/page/chatbot_page.dart';
 import 'package:mental_health_app/features/diary/screen/diary_screen.dart';
 import 'package:mental_health_app/features/home/profile/profile_page.dart';
+import 'package:mental_health_app/features/reminders/page/reminder_list_page.dart';
 import 'package:mental_health_app/features/suggestions/page/suggestion_list_page.dart';
 
 class Homepage extends StatefulWidget {
@@ -334,7 +335,7 @@ class _HomepageState extends State<Homepage> with TickerProviderStateMixin {
                               label: "Reminders",
                               color: const Color.fromARGB(255, 247, 35, 229),
                               onTap: () {
-                                // Navigator.push(context, MaterialPageRoute(builder: (_) => const ReminderListPage()));
+                                Navigator.push(context, MaterialPageRoute(builder: (_) => const ReminderListPage()));
                               },
                             ),
                             _buildQuickActionButton(

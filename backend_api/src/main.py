@@ -66,7 +66,9 @@ app.include_router(charts.router, prefix="/api/charts", tags=["Charts"])
 app.include_router(suggestions.router, prefix="/api/suggestions", tags=["Suggestions"])
 
 # 5. Route cho nhắc nhở (NEW)
+app.include_router(reminders.router)
 app.include_router(reminders.router, prefix="/api/reminders", tags=["Reminders"])
 
 # 6. Route cho Chatbot AI (NEW)
+app.include_router(chatbot.router)
 app.include_router(chatbot.router, prefix="/api/chatbot", tags=["Chatbot"])
