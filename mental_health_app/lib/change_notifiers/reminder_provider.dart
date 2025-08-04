@@ -17,8 +17,7 @@ class ReminderProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  ReminderProvider() {
-  }
+  ReminderProvider();
 
   void init(BuildContext context) {
     if (!_isInitialized) {

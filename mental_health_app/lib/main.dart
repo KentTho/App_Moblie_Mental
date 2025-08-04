@@ -1,19 +1,29 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:get/get.dart';
+import 'package:provider/provider.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
+import 'firebase_options.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+
 import 'package:mental_health_app/change_notifiers/auth_provider.dart';
 import 'package:mental_health_app/change_notifiers/chart_provider.dart';
 import 'package:mental_health_app/change_notifiers/chatbot_provider.dart';
 import 'package:mental_health_app/change_notifiers/new_note_controller.dart';
 import 'package:mental_health_app/change_notifiers/notes_provider.dart';
 import 'package:mental_health_app/change_notifiers/reminder_provider.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:mental_health_app/services/api_service.dart';
 import 'package:mental_health_app/services/chatbot_service.dart';
 import 'package:mental_health_app/wrapper.dart';
-import 'package:provider/provider.dart';
-import 'firebase_options.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:get/get.dart';
+
+
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // Nếu cần xử lý thông báo trong background
+  print("🔄 Handling background message: ${message.messageId}");
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,6 +36,47 @@ void main() async {
     print('❌ Firebase init failed: $e');
   }
 
+  // ✅ Khởi tạo Awesome Notifications
+  AwesomeNotifications().initialize(
+    null,
+    [
+      NotificationChannel(
+        channelKey: 'reminder_channel',
+        channelName: 'Reminder Notifications',
+        channelDescription: 'Channel for reminders',
+        defaultColor: Colors.teal,
+        ledColor: Colors.white,
+        importance: NotificationImportance.High,
+      )
+    ],
+    debug: true,
+  );
+
+  // ✅ Xin quyền gửi thông báo nếu chưa được cấp
+  bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
+  if (!isAllowed) {
+    await AwesomeNotifications().requestPermissionToSendNotifications();
+  }
+
+  // ✅ Cấu hình nhận thông báo background
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  // ✅ Cấu hình nhận thông báo foreground (hiện khi app đang mở)
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    print('📩 Foreground message received: ${message.notification?.title}');
+    if (message.notification != null) {
+      AwesomeNotifications().createNotification(
+        content: NotificationContent(
+          id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+          channelKey: 'reminder_channel',
+          title: message.notification?.title ?? 'Reminder',
+          body: message.notification?.body ?? 'You have a new reminder!',
+          notificationLayout: NotificationLayout.Default,
+        ),
+      );
+    }
+  });
+  
   runApp(
     MultiProvider(
       providers: [
@@ -60,9 +111,9 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Mental Health App',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
       ),
-      home: const SplashScreen(), // ✅ Chuyển sang Splash trước
+      home: const SplashScreen(),
       localizationsDelegates: const [
         FlutterQuillLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
@@ -72,13 +123,10 @@ class MyApp extends StatelessWidget {
       supportedLocales: const [
         Locale('en'),
       ],
-
-
     );
   }
 }
 
-// ✅ SplashScreen tích hợp tại đây hoặc bạn có thể tách file splash_screen.dart
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -94,7 +142,6 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
-
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1800),

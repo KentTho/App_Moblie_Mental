@@ -8,6 +8,7 @@ from src.models.notes import Note
 from src.models.user import User
 from src.schemas.chart_schema import EmotionChartResponse
 from src.dependencies import get_current_user_from_firebase
+from sqlalchemy import func  # ⚠️ Thêm dòng import này ở đầu file nếu chưa có
 
 router = APIRouter(prefix="/api/charts", tags=["Charts"])
 
@@ -27,8 +28,8 @@ async def get_emotions_over_time(
     # Truy vấn Note từ DB
     notes = db.query(Note).filter(
         Note.user_id == current_user.id,
-        Note.created_at >= start_date,
-        Note.created_at <= end_date
+        func.date(Note.created_at) >= start_date,
+        func.date(Note.created_at) <= end_date
     ).order_by(Note.created_at).all()
 
     print(f"📌 Found {len(notes)} notes for user {current_user.id} from {start_date} to {end_date}")

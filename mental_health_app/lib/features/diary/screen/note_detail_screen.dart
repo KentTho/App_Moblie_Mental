@@ -189,34 +189,11 @@ Widget build(BuildContext context) {
               ),
               const SizedBox(height: 8),
               EmotionChips(emotions: widget.note.emotions ?? []),
-              // Wrap(
-              //   spacing: 8,
-              //   runSpacing: 4,
-              //   children: widget.note.emotions!.map((emotion) {
-              //     return Container(
-              //       padding: const EdgeInsets.symmetric(
-              //         horizontal: 12,
-              //         vertical: 6,
-              //       ),
-              //       decoration: BoxDecoration(
-              //         color: Colors.blueGrey.withOpacity(0.1), // Different color for emotions
-              //         borderRadius: BorderRadius.circular(16),
-              //         border: Border.all(
-              //           color: Colors.blueGrey.withOpacity(0.3),
-              //         ),
-              //       ),
-              //       child: Text(
-              //         emotion.toUpperCase(), // Display emotion in uppercase
-              //         style: const TextStyle(
-              //           fontSize: 12,
-              //           color: Colors.blueGrey,
-              //           fontWeight: FontWeight.w500,
-              //         ),
-              //       ),
-              //     );
-              //   }).toList(),
-              // ),          
             ],
+            Text(
+              'Đây là cảm xúc được AI phân tích từ nội dung ghi chú.',
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+            ),
             const SizedBox(height: 24),
             Container(
               width: double.infinity,

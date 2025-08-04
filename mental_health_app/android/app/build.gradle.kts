@@ -34,5 +34,4 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.15.0"))
     implementation("com.google.firebase:firebase-analytics-ktx")
     implementation("com.google.android.gms:play-services-auth:20.7.0") // Hoặc mới hơn
- // Bắt buộc cho Google Sign-In
 }

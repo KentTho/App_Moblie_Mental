@@ -12,6 +12,7 @@ from src.models.user import User
 from src.schemas.note_schema import NoteCreate, NoteUpdate, NoteOut
 from src.services.ai_emotion_service import analyze_emotions
 from src.dependencies import get_current_user_from_firebase  # Dependency xác thực từ Firebase
+from src.services.note_service import detect_topics_from_content
 
 # Tạo router với prefix "/api/notes"
 router = APIRouter(prefix="/api/notes", tags=["Notes"])
@@ -26,7 +27,7 @@ async def create_note(
     note_content_for_ai = note.content if note.content is not None else ""
 
     detected_emotions = await analyze_emotions(note_content_for_ai)
-
+    detected_topics = detect_topics_from_content(note_content_for_ai)
     # Đảm bảo emotions không null
     if not detected_emotions:
         detected_emotions = ["neutral"]
@@ -36,7 +37,7 @@ async def create_note(
         title=note.title,
         content=note.content,
         content_json=json.dumps(note.content_json) if note.content_json is not None else None,
-        tags=note.tags,
+        tags=detected_topics,  # Sử dụng kết quả từ NLP
         sentiment=", ".join(detected_emotions),
         emotions=detected_emotions
     )
@@ -84,6 +85,8 @@ async def update_note(
         raise HTTPException(status_code=404, detail="Note not found")
 
     updated_note_content_for_ai = updated_note.content or ""
+    updated_topics = detect_topics_from_content(updated_note_content_for_ai)
+    note.tags = updated_topics
 
     # Xử lý tương tự như create_note
     emotion_results = await analyze_emotions(updated_note_content_for_ai)

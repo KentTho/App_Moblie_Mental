@@ -11,15 +11,13 @@ from uuid import UUID
 
 router = APIRouter(prefix="/api/reminders", tags=["Reminders"])
 
+from src.services.firebase import send_fcm_notification_v1  # thêm lại
+
 @router.post("/", response_model=ReminderOut, status_code=status.HTTP_201_CREATED)
 def create_reminder(reminder: ReminderCreate, db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user_from_firebase)):
-    """
-    Creates a new journaling reminder for a user.
-    """
-    db_reminder = Reminder(**reminder.model_dump())
-    #.user_id = current_user.id
-    db_reminder=Reminder(
+
+    db_reminder = Reminder(
         user_id=current_user.id,
         message=reminder.message,
         scheduled_time=reminder.scheduled_time,
@@ -29,17 +27,27 @@ def create_reminder(reminder: ReminderCreate, db: Session = Depends(get_db),
     db.add(db_reminder)
     db.commit()
     db.refresh(db_reminder)
+
+    # ✅ Gửi thông báo qua FCM nếu có token
+    if current_user.fcm_token:
+        title = "Nhắc nhở mới"
+        body = f"{reminder.message} lúc {reminder.scheduled_time.strftime('%H:%M %d-%m-%Y')}"
+        send_fcm_notification_v1(current_user.fcm_token, title, body)
+    else:
+        print("⚠️ Không có FCM token để gửi thông báo.")
+
     return db_reminder
+
 
 @router.get("/user/{firebase_uid}", response_model=List[ReminderOut])
 def get_user_reminders(firebase_uid: str, db: Session = Depends(get_db)):
-    """
-    Retrieves all reminders for a specific user.
-    """
-    reminders = db.query(Reminder).filter(User.firebase_uid == firebase_uid).order_by(Reminder.scheduled_time).all()
-    if reminders is None:
-        raise HTTPException(status_code=404, detail="Reminders not found")
+    user = db.query(User).filter(User.firebase_uid == firebase_uid).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    reminders = db.query(Reminder).filter(Reminder.user_id == user.id).order_by(Reminder.scheduled_time).all()
     return reminders
+
 
 @router.get("/{reminder_id}", response_model=ReminderOut)
 def get_reminder(reminder_id: UUID, db: Session = Depends(get_db)):

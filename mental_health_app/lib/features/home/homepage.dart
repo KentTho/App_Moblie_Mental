@@ -1,4 +1,6 @@
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:mental_health_app/features/auth/page/login.dart';
 import 'package:mental_health_app/features/charts/page/emotion_chart_page.dart';
@@ -24,6 +26,28 @@ class _HomepageState extends State<Homepage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    print('📩 Received foreground message: ${message.notification?.title}');
+
+    if (message.notification != null) {
+      AwesomeNotifications().createNotification(
+        content: NotificationContent(
+          id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+          channelKey: 'reminder_channel',
+          title: message.notification?.title ?? 'Reminder',
+          body: message.notification?.body ?? 'You have a new reminder!',
+          notificationLayout: NotificationLayout.Default,
+        ),
+      );
+    }
+  });
+
+  // Nếu dùng animation ở Homepage như bạn có thì nên để sau:
+  _animationController = AnimationController(
+    duration: const Duration(milliseconds: 800),
+    vsync: this,
+  );
+  
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,

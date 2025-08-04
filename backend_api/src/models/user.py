@@ -21,3 +21,4 @@ class User(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     role = Column(String, nullable=True)
     is_verified = Column(Boolean, default=False)
+    fcm_token = Column(String, nullable=True)

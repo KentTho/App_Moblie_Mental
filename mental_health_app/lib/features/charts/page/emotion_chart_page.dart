@@ -330,48 +330,80 @@ class _EmotionChartPageState extends State<EmotionChartPage> {
     );
   }
 
+
   Widget _buildDayEmotionCard(EmotionDataPoint dataPoint) {
-    final isToday = dataPoint.date.isAtSameMomentAs(DateTime.now().toLocal());
-    
-    return Card(
-      elevation: 1,
-      margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      child: ExpansionTile(
-        title: Text(
-          dataPoint.formattedDate,
-          style: TextStyle(
-            fontWeight: FontWeight.w500,
-            color: isToday ? Colors.deepPurple : Colors.black,
-          ),
+  final isToday = dataPoint.date.day == DateTime.now().day &&
+                  dataPoint.date.month == DateTime.now().month &&
+                  dataPoint.date.year == DateTime.now().year;
+
+  // Xác định cảm xúc chính của ngày (nổi bật nhất)
+  final dominantEmotion = dataPoint.emotionCounts.isNotEmpty
+      ? dataPoint.emotionCounts.entries.reduce((a, b) => a.value > b.value ? a : b).key
+      : 'calm';
+
+  return Card(
+    elevation: 1,
+    margin: EdgeInsets.symmetric(vertical: 4),
+    color: _getEmotionColor(dominantEmotion).withOpacity(0.07),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    child: ExpansionTile(
+      tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      title: Text(
+        dataPoint.formattedDate,
+        style: TextStyle(
+          fontWeight: FontWeight.w600,
+          fontSize: 16,
+          color: isToday ? Colors.deepPurple : Colors.black87,
         ),
-        leading: isToday 
-            ? const Icon(Icons.today, color: Colors.deepPurple)
-            : const Icon(Icons.calendar_today, size: 20),
-        childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        children: [
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: dataPoint.emotionCounts.entries.map((entry) => Chip(
-              backgroundColor: _getEmotionColor(entry.key).withOpacity(0.2),
+      ),
+      subtitle: Text(
+        'Cảm xúc nổi bật: ${StringExtension(dominantEmotion).capitalize()}',
+        style: TextStyle(
+          fontSize: 13,
+          color: _getEmotionColor(dominantEmotion),
+        ),
+      ),
+      leading: Icon(
+        isToday ? Icons.today : Icons.calendar_today,
+        color: isToday ? Colors.deepPurple : Colors.grey[700],
+      ),
+      childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      children: [
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: dataPoint.emotionCounts.entries.map((entry) {
+            final emotion = entry.key;
+            final count = entry.value;
+            final color = _getEmotionColor(emotion);
+
+            return Chip(
+              backgroundColor: color.withOpacity(0.2),
               label: Text(
-                '${StringExtension(entry.key).capitalize()}: ${entry.value}',
-                style: TextStyle(
-                  color: Colors.grey[800],
+                '${StringExtension(emotion).capitalize()}: $count',
+                style: const TextStyle(
                   fontSize: 13,
+                  color: Colors.black87,
                 ),
               ),
-              avatar: CircleAvatar(
-                backgroundColor: _getEmotionColor(entry.key),
-                radius: 10,
+              avatar: Icon(
+                _getEmotionIcon(emotion),
+                size: 18,
+                color: color,
               ),
-            )).toList(),
-          ),
-        ],
-      ),
-    );
-  }
+              shape: StadiumBorder(
+                side: BorderSide(color: color.withOpacity(0.3)),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    ),
+  );
+
+}
+
+
 
   // Helper functions
   DominantEmotion _getDominantEmotion(List<EmotionDataPoint> data) {
@@ -405,6 +437,22 @@ class _EmotionChartPageState extends State<EmotionChartPage> {
     }).length;
   }
 
+IconData _getEmotionIcon(String emotion) {
+  switch (emotion.toLowerCase()) {
+    case 'joy':
+      return Icons.emoji_emotions;
+    case 'sadness':
+      return Icons.sentiment_dissatisfied;
+    case 'anger':
+      return Icons.whatshot;
+    case 'fear':
+      return Icons.warning_amber_rounded;
+    case 'calm':
+      return Icons.self_improvement;
+    default:
+      return Icons.sentiment_neutral;
+  }
+}
   Color _getEmotionColor(String emotion) {
     switch (emotion.toLowerCase()) {
       case 'joy': return const Color.fromARGB(255, 255, 251, 3); // green

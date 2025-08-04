@@ -29,57 +29,24 @@ async def analyze_emotions_for_sentiment_field(text: str) -> List[str]:
     if not text.strip() or not sentiment_classifier:
         print("⚠️ No input text or sentiment model not loaded.")
         return []
-
     try:
         prediction: List[List[Dict[str, Any]]] = sentiment_classifier(text)
-        print(f"DEBUG: Raw sentiment prediction: {prediction}") # DEBUG: Print raw prediction
-        results = prediction[0] if isinstance(prediction, list) and prediction and isinstance(prediction[0], list) else []
+        results = prediction[0]
 
-        detected_emotions = set()
-        for res in results:
-            label = res['label'].lower()
-            score = res['score']
+        detected_emotions = [
+            res["label"].lower()
+            for res in results
+            if res["score"] > 0.3 and res["label"].lower() in FRONTEND_EMOTIONS
+        ]
 
-            mapped_label = None
-            if label == 'tich_cuc':
-                if 'joy' in FRONTEND_EMOTIONS:
-                    mapped_label = 'joy'
-                elif 'excitement' in FRONTEND_EMOTIONS:
-                    mapped_label = 'excitement'
-            elif label == 'tieu_cuc':
-                if 'sadness' in FRONTEND_EMOTIONS:
-                    mapped_label = 'sadness'
-                elif 'anger' in FRONTEND_EMOTIONS:
-                    mapped_label = 'anger'
-                elif 'fear' in FRONTEND_EMOTIONS:
-                    mapped_label = 'fear'
-            elif label == 'trung_tinh':
-                if 'neutral' in FRONTEND_EMOTIONS: mapped_label = 'neutral'
+        # Fallback nếu không có cảm xúc nào vượt ngưỡng
+        if not detected_emotions:
+            top = max(results, key=lambda x: x["score"])
+            if top["label"].lower() in FRONTEND_EMOTIONS:
+                detected_emotions = [top["label"].lower()]
 
-            if mapped_label and score > 0.2: # ✅ Lowered threshold
-                detected_emotions.add(mapped_label)
-
-        # Fallback: if no emotions pass the threshold, take the top-scoring one
-        if not detected_emotions and results:
-            top_result = max(results, key=lambda x: x['score'])
-            top_label = top_result['label'].lower()
-            mapped_top_label = None
-            if top_label == 'tich_cuc':
-                if 'joy' in FRONTEND_EMOTIONS: mapped_top_label = 'joy'
-                elif 'excitement' in FRONTEND_EMOTIONS: mapped_top_label = 'excitement'
-            elif top_label == 'tieu_cuc':
-                if 'sadness' in FRONTEND_EMOTIONS: mapped_top_label = 'sadness'
-                elif 'anger' in FRONTEND_EMOTIONS: mapped_top_label = 'anger'
-                elif 'fear' in FRONTEND_EMOTIONS: mapped_top_label = 'fear'
-            elif top_label == 'trung_tinh':
-                if 'neutral' in FRONTEND_EMOTIONS: mapped_top_label = 'neutral'
-
-            if mapped_top_label:
-                detected_emotions.add(mapped_top_label)
-
-        emotions = sorted(list(detected_emotions))
-        print(f"✅ Emotions analyzed for sentiment field using local Hugging Face Vietnamese model: {emotions}")
-        return emotions
+        print(f"✅ Final multi-class emotions: {detected_emotions}")
+        return sorted(detected_emotions)
 
     except Exception as e:
         print(f"❌ Error during emotion analysis for sentiment field: {e}")

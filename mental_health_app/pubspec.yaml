@@ -46,6 +46,9 @@ dependencies:
   provider: ^6.1.5
   another_flushbar: ^1.10.29
   fl_chart: ^0.64.0  # hoặc phiên bản mới nhất
+  firebase_messaging: 15.2.9
+  awesome_notifications: 0.10.1
+
   
 dev_dependencies:
   flutter_test:
@@ -71,6 +74,7 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
+    - assets/images/empty_chart.png
     - assets/images/images_test.jpg
     - assets/images/google.png
     - assets/images/person.png

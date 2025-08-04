@@ -11,7 +11,10 @@ from src.models.user import User
 from src.models.user_profile import UserProfile
 from src.services import user_service
 from src.services.firebase import verify_firebase_token
+from pydantic import BaseModel
 
+class FCMTokenUpdate(BaseModel):
+    fcm_token: str
 router = APIRouter(prefix="/user", tags=["User"])
 
 # --- SCHEMAS ---
@@ -194,3 +197,20 @@ def update_verified(
     user.is_verified = payload.is_verified
     db.commit()
     return {"message": "Verification status updated"}
+
+
+@router.put("/update-fcm-token")
+def update_fcm_token(
+    payload: FCMTokenUpdate,
+    db: Session = Depends(get_db),
+    firebase_user=Depends(verify_firebase_token)
+):
+    uid = firebase_user.get("uid")
+    user = db.query(User).filter(User.firebase_uid == uid).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    user.fcm_token = payload.fcm_token
+    db.commit()
+    return {"message": "FCM token updated"}
