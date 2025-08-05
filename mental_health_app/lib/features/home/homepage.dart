@@ -27,27 +27,21 @@ class _HomepageState extends State<Homepage> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    print('📩 Received foreground message: ${message.notification?.title}');
+      print('📩 Received foreground message: ${message.notification?.title}');
 
-    if (message.notification != null) {
-      AwesomeNotifications().createNotification(
-        content: NotificationContent(
-          id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-          channelKey: 'reminder_channel',
-          title: message.notification?.title ?? 'Reminder',
-          body: message.notification?.body ?? 'You have a new reminder!',
-          notificationLayout: NotificationLayout.Default,
-        ),
-      );
-    }
-  });
+      if (message.notification != null) {
+        AwesomeNotifications().createNotification(
+          content: NotificationContent(
+            id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+            channelKey: 'reminder_channel',
+            title: message.notification?.title ?? 'Reminder',
+            body: message.notification?.body ?? 'You have a new reminder!',
+            notificationLayout: NotificationLayout.Default,
+          ),
+        );
+      }
+    });
 
-  // Nếu dùng animation ở Homepage như bạn có thì nên để sau:
-  _animationController = AnimationController(
-    duration: const Duration(milliseconds: 800),
-    vsync: this,
-  );
-  
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
@@ -88,118 +82,170 @@ class _HomepageState extends State<Homepage> with TickerProviderStateMixin {
     }
   }
 
-  Widget _buildFeatureCard({
-  required IconData icon,
-  required String title,
-  required String subtitle,
-  required Color iconColor,
-  required Color backgroundColor,
-  required VoidCallback onTap,
-  bool isLarge = false,
-}) {
-  return GestureDetector(
-    onTap: onTap,
-    child: Container(
-      height: isLarge ? 240 : 200, // ← Tăng chiều cao để tránh overflow
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                icon,
-                color: iconColor,
-                size: 24,
-              ),
-            ),
-            const Spacer(),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF1D1D1F),
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w400,
-              ),
-              maxLines: isLarge ? 4 : 3, // ← tăng maxLines để tránh tràn
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-}
-
-
-  Widget _buildQuickActionButton({
+  Widget _buildMainFeatureCard({
     required IconData icon,
-    required String label,
-    required Color color,
+    required String title,
+    required String subtitle,
+    required Color primaryColor,
+    required Color backgroundColor,
     required VoidCallback onTap,
+    bool isFullWidth = false,
   }) {
     return GestureDetector(
       onTap: onTap,
-      child: SizedBox(
-        width: 72,
+      child: Container(
+        width: isFullWidth ? double.infinity : null,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: primaryColor.withOpacity(0.1),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: primaryColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: color.withOpacity(0.2),
-                  width: 1,
-                ),
               ),
               child: Icon(
                 icon,
-                color: color,
-                size: 24,
+                color: primaryColor,
+                size: 28,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1A1A1A),
+                height: 1.2,
               ),
             ),
             const SizedBox(height: 8),
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: 15,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w400,
+                height: 1.4,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCompactCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color iconColor,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: iconColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                icon,
+                color: iconColor,
+                size: 22,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF1A1A1A),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w400,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomNavItem({
+    required IconData icon,
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isSelected ? const Color(0xFF4CAF50).withOpacity(0.1) : Colors.transparent,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                icon,
+                color: isSelected ? const Color(0xFF4CAF50) : const Color(0xFF9CA3AF),
+                size: 24,
+              ),
+            ),
+            const SizedBox(height: 4),
             Text(
               label,
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
-                color: Colors.grey[700],
+                color: isSelected ? const Color(0xFF4CAF50) : const Color(0xFF9CA3AF),
               ),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -210,7 +256,7 @@ class _HomepageState extends State<Homepage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F2F7),
+      backgroundColor: const Color(0xFFF8F9FA),
       body: SafeArea(
         child: FadeTransition(
           opacity: _fadeAnimation,
@@ -218,158 +264,132 @@ class _HomepageState extends State<Homepage> with TickerProviderStateMixin {
             position: _slideAnimation,
             child: CustomScrollView(
               slivers: [
-                // Custom App Bar
+                // Header Section
                 SliverToBoxAdapter(
                   child: Container(
-                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                    child: Row(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
                       children: [
-                        // Profile Avatar
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const ProfilePage()),
-                            );
-                          },
-                          child: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFF007AFF), Color(0xFF5856D6)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: const Icon(
-                              Icons.person_rounded,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        // Greeting
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _getGreeting(),
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.grey[600],
-                                  fontWeight: FontWeight.w400,
+                        // Top Navigation
+                        Row(
+                          children: [
+                            // Profile Avatar
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const ProfilePage()),
+                                );
+                              },
+                              child: Container(
+                                width: 48,
+                                height: 48,
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [Color(0xFF4CAF50), Color(0xFF45A049)],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(24),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFF4CAF50).withOpacity(0.3),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(
+                                  Icons.person_rounded,
+                                  color: Colors.white,
+                                  size: 24,
                                 ),
                               ),
-                              Text(
-                                _getUserName(),
-                                style: const TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF1D1D1F),
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Settings Button
-                       // Logout Button
-                          const SizedBox(width: 12),
-                          GestureDetector(
-                            onTap: signout,
-                            child: Container(
-                              width: 40,
-                              height: 40,
+                            ),
+                            const Spacer(),
+                            // Notification Icon
+                            Container(
+                              width: 44,
+                              height: 44,
                               decoration: BoxDecoration(
                                 color: Colors.white,
-                                borderRadius: BorderRadius.circular(20),
+                                borderRadius: BorderRadius.circular(22),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.08),
+                                    color: Colors.black.withOpacity(0.06),
                                     blurRadius: 8,
                                     offset: const Offset(0, 2),
                                   ),
                                 ],
                               ),
-                              child: Icon(
-                                Icons.logout_rounded,
-                                color: Colors.redAccent,
-                                size: 20,
+                              child: const Icon(
+                                Icons.notifications_none_rounded,
+                                color: Color(0xFF6B7280),
+                                size: 22,
                               ),
                             ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                // Quick Actions Section
-                SliverToBoxAdapter(
-                  child: Container(
-                    padding: const EdgeInsets.fromLTRB(20, 30, 20, 0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          "Quick Actions",
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF1D1D1F),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            _buildQuickActionButton(
-                              icon: Icons.add_circle_outline_rounded,
-                              label: "New Entry",
-                              color: const Color(0xFF34C759),
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (_) => const DiaryScreen()),
-                                );
-                              },
-                            ),
-                            _buildQuickActionButton(
-                              icon: Icons.chat_bubble_outline_rounded,
-                              label: "Chat",
-                              color: const Color(0xFF007AFF),
-                              onTap: () {
-                                // Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatbotPage()));
-                              },
-                            ),
-                            _buildQuickActionButton(
-                              icon: Icons.insights_rounded,
-                              label: "Insights",
-                              color: const Color(0xFFFF9500),
-                              onTap: () {
-                                // Navigator.push(context, MaterialPageRoute(builder: (_) => const EmotionChartPage()));
-                              },
-                            ),
-                            _buildQuickActionButton(
-                              icon: Icons.notifications_none_rounded,
-                              label: "Reminders",
-                              color: const Color.fromARGB(255, 247, 35, 229),
-                              onTap: () {
-                                Navigator.push(context, MaterialPageRoute(builder: (_) => const ReminderListPage()));
-                              },
-                            ),
-                            _buildQuickActionButton(
-                              icon: Icons.logout_rounded,
-                              label: "Logout",
-                              color: Colors.redAccent,
+                            const SizedBox(width: 12),
+                            // Logout Button
+                            GestureDetector(
                               onTap: signout,
+                              child: Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(22),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.06),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(
+                                  Icons.logout_rounded,
+                                  color: Color(0xFFEF4444),
+                                  size: 22,
+                                ),
+                              ),
                             ),
                           ],
                         ),
+                        
+                        const SizedBox(height: 32),
+                        
+                        // Greeting Section
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _getGreeting(),
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.grey[600],
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    _getUserName(),
+                                    style: const TextStyle(
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.w800,
+                                      color: Color(0xFF1A1A1A),
+                                      height: 1.1,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        
+                        const SizedBox(height: 8),
                       ],
                     ),
                   ),
@@ -377,106 +397,97 @@ class _HomepageState extends State<Homepage> with TickerProviderStateMixin {
 
                 // Main Features Section
                 SliverToBoxAdapter(
-                  child: Container(
-                    padding: const EdgeInsets.fromLTRB(20, 40, 20, 0),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        const SizedBox(height: 8),
                         const Text(
-                          "Your Wellbeing Tools",
+                          "Your Wellbeing Dashboard",
                           style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF1D1D1F),
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF1A1A1A),
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 20),
                         
-                        // First Row - Diary (Large) + Chart
+                        // Emotion Diary - Main Feature
+                        _buildMainFeatureCard(
+                          icon: Icons.favorite_rounded,
+                          title: "Mental Edge",
+                          subtitle: "Healthy life is having a healthy mind so build a healthy mind than the healthy body.",
+                          primaryColor: const Color(0xFF4CAF50),
+                          backgroundColor: const Color(0xFF4CAF50),
+                          isFullWidth: true,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const DiaryScreen()),
+                            );
+                          },
+                        ),
+                        
+                        const SizedBox(height: 20),
+                        
+                        // Grid of Features
                         Row(
                           children: [
-                            // Diary - Large Card
                             Expanded(
-                              child: _buildFeatureCard(
-                                icon: Icons.book_outlined,
-                                title: "Emotion Diary",
-                                subtitle: "Track your daily emotions and thoughts. Build healthy habits through reflection.",
-                                iconColor: const Color(0xFF34C759),
-                                backgroundColor: Colors.white,
-                                isLarge: true,
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (_) => const DiaryScreen()),
-                                  );
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            // Chart
-                            Expanded(
-                              child: _buildFeatureCard(
+                              child: _buildCompactCard(
                                 icon: Icons.analytics_outlined,
                                 title: "Progress Chart",
-                                subtitle: "View your emotional patterns",
-                                iconColor: const Color(0xFFFF9500),
-                                backgroundColor: Colors.white,
+                                subtitle: "Track emotional patterns",
+                                iconColor: const Color(0xFFF59E0B),
                                 onTap: () {
                                   Navigator.push(context, MaterialPageRoute(builder: (_) => const EmotionChartPage()));
                                 },
                               ),
                             ),
-                          ],
-                        ),
-                        
-                        const SizedBox(height: 12),
-                        
-                        // Second Row - Chatbot + Reminders
-                        Row(
-                          children: [
-                            // Chatbot
+                            const SizedBox(width: 16),
                             Expanded(
-                              child: _buildFeatureCard(
+                              child: _buildCompactCard(
                                 icon: Icons.psychology_outlined,
                                 title: "AI Assistant",
-                                subtitle: "Chat with your personal wellbeing companion",
-                                iconColor: const Color(0xFF007AFF),
-                                backgroundColor: Colors.white,
+                                subtitle: "Your wellbeing companion",
+                                iconColor: const Color(0xFF3B82F6),
                                 onTap: () {
                                   Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatbotPage()));
                                 },
                               ),
                             ),
-                            const SizedBox(width: 12),
-                            // Reminders
+                          ],
+                        ),
+                        
+                        const SizedBox(height: 16),
+                        
+                        Row(
+                          children: [
                             Expanded(
-                              child: _buildFeatureCard(
+                              child: _buildCompactCard(
                                 icon: Icons.schedule_outlined,
                                 title: "Smart Reminders",
-                                subtitle: "Never miss your self-care routine",
-                                iconColor: const Color(0xFFFF3B30),
-                                backgroundColor: Colors.white,
+                                subtitle: "Never miss self-care",
+                                iconColor: const Color(0xFF8B5CF6),
                                 onTap: () {
-                                  // Navigator.push(context, MaterialPageRoute(builder: (_) => const ReminderListPage()));
+                                  Navigator.push(context, MaterialPageRoute(builder: (_) => const ReminderListPage()));
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildCompactCard(
+                                icon: Icons.lightbulb_outline_rounded,
+                                title: "Wellness Tips",
+                                subtitle: "Personalized suggestions",
+                                iconColor: const Color(0xFFEC4899),
+                                onTap: () {
+                                  Navigator.push(context, MaterialPageRoute(builder: (_) => const SuggestionListPage()));
                                 },
                               ),
                             ),
                           ],
-                        ),
-                        
-                        const SizedBox(height: 12),
-                        
-                        // Third Row - Suggestions (Full Width)
-                        _buildFeatureCard(
-                          icon: Icons.lightbulb_outline_rounded,
-                          title: "Wellness Suggestions",
-                          subtitle: "Personalized tips and activities to improve your mental health and daily routine",
-                          iconColor: const Color(0xFF5856D6),
-                          backgroundColor: Colors.white,
-                          isLarge: true,
-                          onTap: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => const SuggestionListPage()));
-                          },
                         ),
                       ],
                     ),
@@ -486,22 +497,23 @@ class _HomepageState extends State<Homepage> with TickerProviderStateMixin {
                 // Today's Inspiration Section
                 SliverToBoxAdapter(
                   child: Container(
-                    padding: const EdgeInsets.fromLTRB(20, 40, 20, 0),
+                    padding: const EdgeInsets.all(24),
+                    margin: const EdgeInsets.only(top: 32),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
                           "Today's Inspiration",
                           style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF1D1D1F),
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF1A1A1A),
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 20),
                         Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.all(24),
+                          padding: const EdgeInsets.all(28),
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
                               colors: [
@@ -511,12 +523,12 @@ class _HomepageState extends State<Homepage> with TickerProviderStateMixin {
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF667eea).withOpacity(0.3),
-                                blurRadius: 12,
-                                offset: const Offset(0, 6),
+                                color: const Color(0xFF667eea).withOpacity(0.4),
+                                blurRadius: 20,
+                                offset: const Offset(0, 10),
                               ),
                             ],
                           ),
@@ -524,34 +536,36 @@ class _HomepageState extends State<Homepage> with TickerProviderStateMixin {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Container(
-                                width: 48,
-                                height: 48,
+                                width: 56,
+                                height: 56,
                                 decoration: BoxDecoration(
                                   color: Colors.white.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(16),
                                 ),
                                 child: const Icon(
-                                  Icons.favorite_rounded,
+                                  Icons.auto_awesome_rounded,
                                   color: Colors.white,
-                                  size: 24,
+                                  size: 28,
                                 ),
                               ),
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 20),
                               const Text(
                                 "Your mental health matters",
                                 style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w600,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w700,
                                   color: Colors.white,
+                                  height: 1.2,
                                 ),
                               ),
-                              const SizedBox(height: 8),
+                              const SizedBox(height: 12),
                               Text(
                                 "Take a moment today to check in with yourself. Small steps lead to big changes in your wellbeing journey.",
                                 style: TextStyle(
                                   fontSize: 16,
                                   color: Colors.white.withOpacity(0.9),
-                                  height: 1.4,
+                                  height: 1.5,
+                                  fontWeight: FontWeight.w400,
                                 ),
                               ),
                             ],
@@ -569,6 +583,105 @@ class _HomepageState extends State<Homepage> with TickerProviderStateMixin {
               ],
             ),
           ),
+        ),
+      ),
+      // Menu
+      bottomNavigationBar: Container(
+        margin: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.95),
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+          border: Border.all(
+            color: Colors.white.withOpacity(0.2),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildBottomNavItem(
+              icon: Icons.home_rounded,
+              label: "Home",
+              isSelected: true,
+              onTap: () {
+                // Already on home page
+              },
+            ),
+            _buildBottomNavItem(
+              icon: Icons.mic_rounded,
+              label: "Record",
+              isSelected: false,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const DiaryScreen()),
+                );
+              },
+            ),
+            // Center Add Button
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const DiaryScreen()),
+                );
+              },
+              child: Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF4CAF50), Color(0xFF45A049)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(28),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF4CAF50).withOpacity(0.4),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.add,
+                  color: Colors.white,
+                  size: 28,
+                ),
+              ),
+            ),
+            _buildBottomNavItem(
+              icon: Icons.list_rounded,
+              label: "Sessions",
+              isSelected: false,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const EmotionChartPage()),
+                );
+              },
+            ),
+            _buildBottomNavItem(
+              icon: Icons.person_rounded,
+              label: "Profile",
+              isSelected: false,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ProfilePage()),
+                );
+              },
+            ),
+          ],
         ),
       ),
     );
