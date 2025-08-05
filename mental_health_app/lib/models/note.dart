@@ -34,7 +34,7 @@ class Note {
       contentJson: json['content_json'] != null
         ? jsonEncode(json['content_json'])
         : null,
-      tags: List<String>.from(json['tags'] ?? []),
+      tags: (json['tags'] as List<dynamic>?)!.map((e) => e.toString()).toList(),
       sentiment: json['sentiment'] as String?,
       emotions: (json['emotions'] as List<dynamic>?)
             ?.map((e) => e.toString())

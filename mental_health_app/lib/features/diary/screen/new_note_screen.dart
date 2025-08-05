@@ -21,38 +21,57 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
   late TextEditingController _tagController;
   late NewNoteController _noteController;
 
+  final List<String> suggestedTopics = [
+    'Công việc',
+    'Tình cảm',
+    'Gia đình',
+    'Học tập',
+    'Sức khỏe',
+    'Tài chính',
+    'Mối quan hệ',
+    'Khác',
+  ];
+  final TextEditingController _customTagController = TextEditingController(); // Tag nhập tay
+
+
   @override
-  void initState() {
-    super.initState();
-    _noteController = NewNoteController();
-    _titleController = TextEditingController();
-    _tagController = TextEditingController();
-    
-    // Set userId from AuthProvider
-    final authProvider = context.read<AuthProvider>();
-    _noteController.userId = authProvider.userId!;
-    
-    // If editing existing note
-    if (widget.note != null) {
-      _noteController.note = widget.note;
-      _titleController.text = widget.note!.title;
-    }
-    
+void initState() {
+  super.initState();
+  _noteController = NewNoteController();
+  _titleController = TextEditingController();
+  _tagController = TextEditingController();
+
+  final authProvider = context.read<AuthProvider>();
+  _noteController.userId = authProvider.userId!;
+
+  if (widget.note != null) {
+    // Trường hợp chỉnh sửa note cũ
+    _noteController.note = widget.note;
+    _titleController.text = widget.note!.title;
+    _noteController.resetNotes(
+      widget.note!.tags,
+      [widget.note!.title], // truyền tiêu đề dưới dạng List<String>
+    );
+ // <- THÊM DÒNG NÀY
     _quillController = QuillController(
-      document: _noteController.content,
+      document: Document.fromJson(widget.note!.content as List), // <- nạp content cũ
       selection: const TextSelection.collapsed(offset: 0),
     );
-    
-    // Listen to content changes
-    _quillController.addListener(() {
-      _noteController.content = _quillController.document;
-    });
-    
-    // Listen to title changes
-    _titleController.addListener(() {
-      _noteController.title = _titleController.text;
-    });
+  } else {
+    // Trường hợp tạo note mới: đảm bảo sạch sẽ
+    _noteController.clear(); // <- THÊM DÒNG NÀY
+    _quillController = QuillController.basic(); // nội dung rỗng
   }
+
+  _quillController.addListener(() {
+    _noteController.content = _quillController.document;
+  });
+
+  _titleController.addListener(() {
+    _noteController.title = _titleController.text;
+  });
+}
+
 
   @override
 Widget build(BuildContext context) {
@@ -154,6 +173,51 @@ Widget build(BuildContext context) {
                           ),
                         ],
                       ),
+                      // Gợi ý tag
+                        const SizedBox(height: 8),
+                          Wrap(
+                          spacing: 8.0,
+                          runSpacing: 4.0,
+                          children: suggestedTopics.map((topic) {
+                            return ChoiceChip(
+                              label: Text(topic),
+                              selected: controller.tags.contains(topic),
+                              onSelected: (bool selected) {
+                                if (selected) {
+                                  controller.addTag(topic);
+                                } else {
+                                  controller.tags.remove(topic);
+                                  controller.notifyListeners();
+                                }
+                              },
+                            );
+                          }).toList(),
+                        ),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: _customTagController,
+                          decoration: InputDecoration(
+                            labelText: 'Tự nhập tag (nếu không có trong danh sách)',
+                            suffixIcon: IconButton(
+                              icon: const Icon(Icons.add),
+                              onPressed: () {
+                                final newTag = _customTagController.text.trim();
+                                if (newTag.isNotEmpty && !controller.tags.contains(newTag)) {
+                                  controller.addTag(newTag);
+                                  _customTagController.clear();
+                                }
+                              },
+                            ),
+                          ),
+                          onSubmitted: (value) {
+                            final newTag = value.trim();
+                            if (newTag.isNotEmpty && !controller.tags.contains(newTag)) {
+                              controller.addTag(newTag);
+                              _customTagController.clear();
+                            }
+                          },
+                        ),
+                        // Hiển thị tag đã chọn                       
                       if (controller.tags.isNotEmpty) ...[
                         const SizedBox(height: 8),
                         Wrap(

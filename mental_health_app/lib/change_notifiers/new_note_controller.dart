@@ -57,7 +57,7 @@ class NewNoteController extends ChangeNotifier {
   bool _readOnly = false;
   String _title = '';
   Document _content = Document();
-  final List<String> _tags = [];
+  List<String> _tags = [];
   final List<String> _emotions = []; // ✅ NEW: Add emotions list
 
   String? _id;
@@ -215,5 +215,19 @@ class NewNoteController extends ChangeNotifier {
 
     return currentTitle != initialTitle || currentContentJson != initialContent;
   }
+    void clear() {
+    _title = '';
+    _tags = [];
+    _content = Document(); // hoặc QuillController.basic().document
+    notifyListeners();
+  }
+
+  void resetNotes(List<String> tags, List<String> titles) {
+    _tags = List.from(tags);
+    _title = titles.isNotEmpty ? titles.first : ''; // ✅ lấy tiêu đề đầu tiên nếu có
+    notifyListeners();
+  }
+
+
 }
  

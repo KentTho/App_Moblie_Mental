@@ -62,6 +62,7 @@ app.include_router(notes.router, prefix="/api/notes", tags=["Notes"])
 # 3. Route cho biểu đồ cảm xúc (NEW)
 app.include_router(charts.router)
 app.include_router(charts.router, prefix="/api/charts", tags=["Charts"])
+
 # 4. Route cho gợi ý bài tập (NEW)
 app.include_router(suggestions.router, prefix="/api/suggestions", tags=["Suggestions"])
 

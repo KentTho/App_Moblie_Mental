@@ -2,7 +2,8 @@ import json
 import datetime  # Sử dụng cho cập nhật thời gian
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
+from sqlalchemy import and_, func
 from sqlalchemy.orm import Session
 
 # Import các thành phần cần thiết từ thư mục nội bộ
@@ -148,3 +149,36 @@ def determine_sentiment(emotions: List[str]) -> Optional[str]:
     elif any(e in negative_emotions for e in emotions):
         return "Tiêu cực"
     return "Trung tính"
+@router.get("/filter/emotion", response_model=List[NoteOut])
+def filter_notes_by_emotion(
+    emotion: str = Query(..., description="Cảm xúc cần lọc, ví dụ: 'sad', 'joy'"),
+    start_date: Optional[str] = Query(None, description="Ngày bắt đầu định dạng YYYY-MM-DD"),
+    end_date: Optional[str] = Query(None, description="Ngày kết thúc định dạng YYYY-MM-DD"),
+    weekday: Optional[int] = Query(None, description="Lọc theo thứ trong tuần: 1 (Monday) đến 7 (Sunday)"),
+    firebase_uid: Optional[str] = Query(None, description="UID người dùng Firebase"),
+    db: Session = Depends(get_db),
+):
+    query = db.query(Note)
+
+    # Lọc theo người dùng (nếu có)
+    if firebase_uid:
+        user = db.query(User).filter(User.firebase_uid == firebase_uid).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        query = query.filter(Note.user_id == user.id)
+
+    # Lọc theo cảm xúc (dùng ANY với Postgres ARRAY)
+    query = query.filter(Note.emotions.any(emotion))
+
+    # Lọc theo ngày
+    if start_date:
+        query = query.filter(Note.created_at >= datetime.fromisoformat(start_date))
+    if end_date:
+        query = query.filter(Note.created_at <= datetime.fromisoformat(end_date))
+
+    # Lọc theo thứ
+    if weekday:
+        query = query.filter(func.extract("dow", Note.created_at) == (weekday % 7))  # Postgres: CN=0, T2=1...
+
+    query = query.order_by(Note.created_at.desc())
+    return query.all()

@@ -59,24 +59,24 @@ class ReminderProvider with ChangeNotifier {
     }
   }
 
-  Future<void> addReminder(BuildContext context, Reminder reminder) async {
+  Future<Reminder?> addReminder(BuildContext context, Reminder reminder) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final UserId = authProvider.userId;
+      final userId = authProvider.userId;
 
-      if (UserId == null) {
+      if (userId == null) {
         _errorMessage = "User not logged in.";
         _isLoading = false;
         notifyListeners();
-        return;
+        return null;
       }
 
       final newReminder = Reminder(
-        userId: UserId,
+        userId: userId,
         message: reminder.message,
         scheduledTime: reminder.scheduledTime,
         isActive: reminder.isActive,
@@ -84,14 +84,18 @@ class ReminderProvider with ChangeNotifier {
 
       final createdReminder = await _reminderService.createReminder(newReminder);
       _reminders.add(createdReminder);
+
+      return createdReminder; // ✅ Trả về reminder thực tế từ BE
     } catch (e) {
       _errorMessage = 'Error adding reminder: $e';
       print('Error adding reminder: $e');
+      return null;
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
+
 
   Future<void> updateReminder(String reminderId, Reminder updatedReminder) async {
     _isLoading = true;

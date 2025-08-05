@@ -121,12 +121,12 @@ class NotesList extends StatelessWidget {
                       const Spacer(),
                       if (note.tags.isNotEmpty)
                         Wrap(
-                          spacing: 4,
+                          spacing: 6.0,
                           children: note.tags.take(2).map((tag) {
                             return Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 2,
+                                horizontal: 14,
+                                vertical: 8,
                               ),
                               decoration: BoxDecoration(
                                 color: primaryColor.withOpacity(0.1),
@@ -135,7 +135,7 @@ class NotesList extends StatelessWidget {
                               child: Text(
                                 tag,
                                 style: TextStyle(
-                                  fontSize: 10,
+                                  fontSize: 15,
                                   color: primaryColor,
                                 ),
                               ),

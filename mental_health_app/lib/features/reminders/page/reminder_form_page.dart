@@ -1,4 +1,5 @@
 // lib/features/reminders/page/reminder_form_page.dart
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:mental_health_app/change_notifiers/reminder_provider.dart';
@@ -72,34 +73,64 @@ class _ReminderFormPageState extends State<ReminderFormPage> {
     }
   }
 
+  Future<void> scheduleNotification(Reminder reminder) async {
+  await AwesomeNotifications().createNotification(
+    schedule: NotificationCalendar(
+      year: reminder.scheduledTime.year,
+      month: reminder.scheduledTime.month,
+      day: reminder.scheduledTime.day,
+      hour: reminder.scheduledTime.hour,
+      minute: reminder.scheduledTime.minute,
+      second: 0,
+      millisecond: 0,
+      repeats: false,
+      preciseAlarm: true,
+    ),
+    content: NotificationContent(
+      id: reminder.scheduledTime.millisecondsSinceEpoch.remainder(100000), // ID duy nhất
+      channelKey: 'reminder_channel',
+      title: '🧠 Reminder',
+      body: reminder.message,
+      notificationLayout: NotificationLayout.Default,
+    ),
+  );
+}
+
   void _saveReminder() async {
     if (_formKey.currentState!.validate()) {
       final reminderProvider = Provider.of<ReminderProvider>(context, listen: false);
 
       final newReminder = Reminder(
-        userId: '', // Will be filled by provider
+        userId: '',
         message: _messageController.text,
         scheduledTime: _scheduledDateTime,
         isActive: _isActive,
       );
 
+      Reminder? savedReminder;
+
       if (widget.reminder == null) {
-        // Create new reminder
-        await reminderProvider.addReminder(context, newReminder);
+        // ✅ Tạo mới và lưu kết quả
+        savedReminder = await reminderProvider.addReminder(context, newReminder);
       } else {
-        // Update existing reminder
         final updatedReminder = Reminder(
-          id: widget.reminder!.id, // Keep existing ID
-          userId: widget.reminder!.userId, // Keep existing user ID
+          id: widget.reminder!.id,
+          userId: widget.reminder!.userId,
           message: _messageController.text,
           scheduledTime: _scheduledDateTime,
           isActive: _isActive,
         );
         await reminderProvider.updateReminder(widget.reminder!.id!, updatedReminder);
+        savedReminder = updatedReminder;
+      }
+
+      // ✅ Lên lịch nếu là reminder đang active và có dữ liệu
+      if (_isActive && savedReminder != null) {
+        await scheduleNotification(savedReminder);
       }
 
       if (reminderProvider.errorMessage == null) {
-        Navigator.of(context).pop(); // Go back to list
+        Navigator.of(context).pop();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(reminderProvider.errorMessage!)),
@@ -107,6 +138,8 @@ class _ReminderFormPageState extends State<ReminderFormPage> {
       }
     }
   }
+
+
 
   @override
   Widget build(BuildContext context) {

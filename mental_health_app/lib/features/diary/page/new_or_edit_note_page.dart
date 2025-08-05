@@ -110,40 +110,53 @@ class _NewOrEditNotePageState extends State<NewOrEditNotePage> {
                   children: [
                     // Add tag input
                     Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _tagController,
-                            decoration: InputDecoration(
-                              hintText: 'Add tag...',
-                              border: const OutlineInputBorder(),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              hintStyle: TextStyle(color: gray500),
+                    children: [
+                      // Input tag
+                      Expanded(
+                        child: TextField(
+                          controller: _tagController,
+                          decoration: InputDecoration(
+                            labelText: 'Thêm thẻ (tag)',
+                            hintText: 'Ví dụ: stress, công việc',
+                            prefixIcon: const Icon(Icons.tag),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            onSubmitted: (value) {
-                              if (value.trim().isNotEmpty) {
-                                controller.addTag(value.trim());
-                                _tagController.clear();
-                              }
-                            },
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            hintStyle: TextStyle(color: gray500),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        IconButton(
-                          onPressed: () {
-                            if (_tagController.text.trim().isNotEmpty) {
-                              controller.addTag(_tagController.text.trim());
+                          onSubmitted: (value) {
+                            if (value.trim().isNotEmpty) {
+                              controller.addTag(value.trim());
                               _tagController.clear();
                             }
                           },
-                          icon: const Icon(Icons.add, color: primaryColor), // Consistent
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(width: 8),
 
+                      // Add tag button - redesigned
+                      FilledButton.icon(
+                        onPressed: () {
+                          if (_tagController.text.trim().isNotEmpty) {
+                            controller.addTag(_tagController.text.trim());
+                            _tagController.clear();
+                          }
+                        },
+                        icon: const Icon(Icons.add),
+                        label: const Text('Thêm'),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: primaryColor,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                          textStyle: const TextStyle(fontSize: 14),
+                        ),
+                      ),
+                    ],
+                  ),
                     // Display tags
                     if (controller.tags.isNotEmpty) ...[
                       const SizedBox(height: 8),

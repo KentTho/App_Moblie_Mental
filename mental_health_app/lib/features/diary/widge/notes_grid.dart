@@ -111,6 +111,33 @@ class NotesGrid extends StatelessWidget {
                     ),
                   ],
                   const SizedBox(height: 8),
+                  
+                  if (note.tags.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Wrap(
+                      spacing: 6.0,
+                      children: note.tags.take(1).map((tag) { // Limit tags for grid view
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: primaryColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            tag,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: primaryColor,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                  const SizedBox(height: 2),
                   Row(
                     children: [
                       FaIcon(
@@ -128,31 +155,6 @@ class NotesGrid extends StatelessWidget {
                       ),
                     ],
                   ),
-                  if (note.tags.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Wrap(
-                      spacing: 4,
-                      children: note.tags.take(1).map((tag) { // Limit tags for grid view
-                        return Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: primaryColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            tag,
-                            style: TextStyle(
-                              fontSize: 9,
-                              color: primaryColor,
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ],
                 ],
               ),
             ),
