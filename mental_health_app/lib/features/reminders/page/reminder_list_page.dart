@@ -44,13 +44,13 @@ class _ReminderListPageState extends State<ReminderListPage> {
           content: const Text('Are you sure you want to delete this reminder?'),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel'),
+              child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
               onPressed: () {
                 Navigator.of(dialogContext).pop();
               },
             ),
             TextButton(
-              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+              child: const Text('Delete', style: TextStyle(color: Color(0xFFE53935))),
               onPressed: () {
                 Provider.of<ReminderProvider>(context, listen: false).deleteReminder(reminderId);
                 Navigator.of(dialogContext).pop();
@@ -65,20 +65,21 @@ class _ReminderListPageState extends State<ReminderListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         title: const Text('Journaling Reminders'),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: const Color(0xFF4CAF50), // xanh lá chủ đạo
       ),
       body: Consumer<ReminderProvider>(
         builder: (context, reminderProvider, child) {
           if (reminderProvider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator(color: Color(0xFF4CAF50)));
           }
           if (reminderProvider.errorMessage != null) {
             return Center(
               child: Text(
                 'Error: ${reminderProvider.errorMessage}',
-                style: const TextStyle(color: Colors.red),
+                style: const TextStyle(color: Color(0xFFE53935)),
               ),
             );
           }
@@ -86,21 +87,28 @@ class _ReminderListPageState extends State<ReminderListPage> {
             return const Center(
               child: Text(
                 'No reminders set yet. Tap + to add one!',
-                style: TextStyle(fontSize: 16, color: Colors.grey),
+                style: TextStyle(fontSize: 16, color: Color(0xFF9CA3AF)),
               ),
             );
           }
 
           return ListView.builder(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(16.0),
             itemCount: reminderProvider.reminders.length,
             itemBuilder: (context, index) {
               final reminder = reminderProvider.reminders[index];
-              return Card(
+              return Container(
                 margin: const EdgeInsets.symmetric(vertical: 8.0),
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF4CAF50).withOpacity(0.1),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
                 ),
                 child: ListTile(
                   contentPadding: const EdgeInsets.all(16),
@@ -109,22 +117,25 @@ class _ReminderListPageState extends State<ReminderListPage> {
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.deepPurple,
+                      color: Color(0xFF1A1A1A),
                     ),
                   ),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 5),
+                      const SizedBox(height: 6),
                       Text(
                         'Scheduled: ${DateFormat('MMM dd, yyyy - hh:mm a').format(reminder.scheduledTime)}',
-                        style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFF6B7280), // xám nhạt
+                        ),
                       ),
                       Text(
                         'Status: ${reminder.isActive ? 'Active' : 'Inactive'}',
                         style: TextStyle(
                           fontSize: 14,
-                          color: reminder.isActive ? Colors.green : Colors.red,
+                          color: reminder.isActive ? const Color(0xFF4CAF50) : const Color(0xFFE53935),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -134,11 +145,11 @@ class _ReminderListPageState extends State<ReminderListPage> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.blue),
+                        icon: const Icon(Icons.edit, color: Color(0xFF3B82F6)), // xanh dương pastel
                         onPressed: () => _navigateToReminderForm(reminder: reminder),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
+                        icon: const Icon(Icons.delete, color: Color(0xFFE53935)), // đỏ nhấn mạnh
                         onPressed: () => _confirmDelete(context, reminder.id!),
                       ),
                     ],
@@ -151,7 +162,7 @@ class _ReminderListPageState extends State<ReminderListPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _navigateToReminderForm(),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: const Color(0xFF4CAF50), // xanh lá
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );

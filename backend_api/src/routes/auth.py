@@ -214,3 +214,12 @@ def update_fcm_token(
     user.fcm_token = payload.fcm_token
     db.commit()
     return {"message": "FCM token updated"}
+
+@router.put("/user/set-role/{uid}")
+async def set_user_role(uid: str, role: str, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.firebase_uid == uid).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user.role = role
+    db.commit()
+    return {"message": f"Role updated to {role}"}

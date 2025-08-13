@@ -1,65 +1,37 @@
 # src/services/suggestion_service.py
+
+import json
+from pathlib import Path
 from typing import List, Optional
 from src.schemas.suggestion_schema import SuggestionItem
 
-# A simple rule-based suggestion system
+SUGGESTION_DATA_PATH = Path("src/data/suggestions_data.json")
+
+
+def load_suggestions_from_file() -> List[dict]:
+    if not SUGGESTION_DATA_PATH.exists():
+        raise FileNotFoundError(f"Suggestions data file not found at {SUGGESTION_DATA_PATH}")
+
+    with SUGGESTION_DATA_PATH.open("r", encoding="utf-8") as f:
+        return json.load(f)
+
+
 def get_suggestions(emotion: Optional[str] = None) -> List[SuggestionItem]:
-    """
-    Provides exercise suggestions based on emotion or general well-being.
-    """
-    suggestions = []
+    raw_data = load_suggestions_from_file()
+    filtered_suggestions = []
 
-    # General suggestions
-    suggestions.extend([
-        SuggestionItem(
-            type="meditation",
-            title="5-Minute Mindfulness Meditation",
-            description="A quick guided meditation to calm your mind and reduce stress.",
-            link="https://www.youtube.com/watch?v=inpoh4yL2Qc" # Placeholder link
-        ),
-        SuggestionItem(
-            type="music",
-            title="Relaxing Ambient Music Playlist",
-            description="A collection of soothing tracks to help you relax and focus.",
-            link="https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M" # Placeholder link
-        ),
-        SuggestionItem(
-            type="article",
-            title="The Benefits of Journaling for Mental Health",
-            description="Learn how daily journaling can improve your emotional well-being.",
-            link="https://www.healthline.com/health/benefits-of-journaling" # Placeholder link
-        ),
-    ])
+    emotion = emotion.lower() if emotion else None
 
-    # Emotion-specific suggestions (can be expanded)
-    if emotion:
-        emotion = emotion.lower()
-        if "sadness" in emotion or "fear" in emotion:
-            suggestions.append(
-                SuggestionItem(
-                    type="exercise",
-                    title="Gentle Yoga for Emotional Release",
-                    description="Practice gentle yoga poses to help process difficult emotions.",
-                    link="https://www.youtube.com/watch?v=hJbRpHNMfCw" # Placeholder link
-                )
-            )
-        if "anger" in emotion:
-            suggestions.append(
-                SuggestionItem(
-                    type="exercise",
-                    title="Deep Breathing Exercises for Anger Management",
-                    description="Techniques to quickly calm down when feeling angry.",
-                    link="https://www.youtube.com/watch?v=F2C_8_1_G0Q" # Placeholder link
-                )
-            )
-        if "joy" in emotion or "excitement" in emotion:
-            suggestions.append(
-                SuggestionItem(
-                    type="activity",
-                    title="Practice Gratitude Journaling",
-                    description="Enhance positive emotions by listing things you're grateful for.",
-                    link="https://www.mindful.org/how-to-practice-gratitude/" # Placeholder link
-                )
-            )
+    for item in raw_data:
+        item_emotions = [e.lower() for e in item.get("emotion", [])]
 
-    return suggestions
+        # Nếu không truyền emotion => lấy những suggestion chung (emotion rỗng)
+        if not emotion:
+            if not item_emotions:  # general suggestions
+                filtered_suggestions.append(SuggestionItem(**item))
+        else:
+            # Nếu cảm xúc có khớp trong danh sách thì lấy
+            if not item_emotions or emotion in item_emotions:
+                filtered_suggestions.append(SuggestionItem(**item))
+
+    return filtered_suggestions

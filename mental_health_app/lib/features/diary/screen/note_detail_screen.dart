@@ -6,34 +6,53 @@ import 'package:mental_health_app/change_notifiers/new_note_controller.dart';
 import 'package:mental_health_app/change_notifiers/notes_provider.dart';
 import 'package:mental_health_app/features/diary/widgets/emotion_chips.dart';
 import 'package:mental_health_app/models/note.dart';
-import 'package:provider/provider.dart';// Import NewNoteController
+import 'package:provider/provider.dart'; // Import NewNoteController
 import '../core/constants.dart'; // Import constants
 import '../page/new_or_edit_note_page.dart'; // Import the new page
 
-
 class NoteDetailScreen extends StatefulWidget {
   final Note note;
-  
+
   const NoteDetailScreen({super.key, required this.note});
 
   @override
   State<NoteDetailScreen> createState() => _NoteDetailScreenState();
 }
 
-class _NoteDetailScreenState extends State<NoteDetailScreen> {
+class _NoteDetailScreenState extends State<NoteDetailScreen>
+    with TickerProviderStateMixin {
   late QuillController _quillController;
   late var note = widget.note;
+
+  // Animation (đồng bộ kiểu Diary/Homepage)
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
 
   @override
   void initState() {
     super.initState();
     note = widget.note;
     _initializeQuillController();
+
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOut,
+    );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.08),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOut));
+    _animationController.forward();
   }
 
   void _initializeQuillController() {
     Document document;
-    
+
     if (widget.note.contentJson != null && widget.note.contentJson!.isNotEmpty) {
       try {
         final jsonData = jsonDecode(widget.note.contentJson!);
@@ -47,7 +66,7 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
     } else {
       document = Document();
     }
-    
+
     _quillController = QuillController(
       document: document,
       selection: const TextSelection.collapsed(offset: 0),
@@ -55,194 +74,228 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
   }
 
   @override
-Widget build(BuildContext context) {
-  return Theme(
-    data: ThemeData(
-      colorScheme: ColorScheme.fromSeed(seedColor: primaryColor),
-      scaffoldBackgroundColor: background,
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-    ),
-    child: Scaffold(
-      appBar: AppBar(
-        title: Text(
-          widget.note.title,
-          style: const TextStyle(
-            color: primaryColor,
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-            fontFamily: 'Fredo',
-          ),
+  Widget build(BuildContext context) {
+    return Theme(
+      data: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: primaryColor),
+        scaffoldBackgroundColor: Colors.grey[100], // nền sáng đồng bộ
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.white, // AppBar trắng
+          elevation: 0,
+          iconTheme: IconThemeData(color: Colors.black), // icon đen
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit, color: primaryColor),
-            onPressed: () {
-              final controller = context.read<NewNoteController>();
-              controller.note = widget.note;
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ChangeNotifierProvider.value(
-                    value: controller,
-                    child: const NewOrEditNotePage(isNewNote: false),
+      ),
+      child: Scaffold(
+        appBar: AppBar(
+          centerTitle: true,
+          title: Text(
+            widget.note.title,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+            style: const TextStyle(
+              color: Colors.black,
+              fontSize: 20, // đồng bộ Homepage
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.edit, color: primaryColor),
+              onPressed: () {
+                final controller = context.read<NewNoteController>();
+                controller.note = widget.note;
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ChangeNotifierProvider.value(
+                      value: controller,
+                      child: const NewOrEditNotePage(isNewNote: false),
+                    ),
+                  ),
+                );
+              },
+            ),
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert, color: Colors.black87),
+              onSelected: (value) {
+                if (value == 'delete') {
+                  _showDeleteDialog();
+                } else if (value == 'share') {
+                  _shareNote();
+                }
+              },
+              itemBuilder: (context) => const [
+                PopupMenuItem(
+                  value: 'share',
+                  child: Row(
+                    children: [
+                      Icon(Icons.share, size: 20),
+                      SizedBox(width: 8),
+                      Text('Share'),
+                    ],
                   ),
                 ),
-              );
-            },
-          ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, color: gray700),
-            onSelected: (value) {
-              if (value == 'delete') {
-                _showDeleteDialog();
-              } else if (value == 'share') {
-                _shareNote();
-              }
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'share',
-                child: Row(
-                  children: [
-                    Icon(Icons.share, size: 20),
-                    SizedBox(width: 8),
-                    Text('Share'),
-                  ],
+                PopupMenuItem(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete, size: 20, color: Colors.red),
+                      SizedBox(width: 8),
+                      Text('Delete', style: TextStyle(color: Colors.red)),
+                    ],
+                  ),
                 ),
-              ),
-              const PopupMenuItem(
-                value: 'delete',
-                child: Row(
-                  children: [
-                    Icon(Icons.delete, size: 20, color: Colors.red),
-                    SizedBox(width: 8),
-                    Text('Delete', style: TextStyle(color: Colors.red)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              widget.note.title,
-              style: const TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                const FaIcon(FontAwesomeIcons.clock, size: 14, color: gray500),
-                const SizedBox(width: 4),
-                Text('Created: ${_formatDate(widget.note.createdAt)}', style: const TextStyle(fontSize: 12, color: gray500)),
-                const SizedBox(width: 16),
-                const FaIcon(FontAwesomeIcons.penToSquare, size: 14, color: gray500),
-                const SizedBox(width: 4),
-                Text('Updated: ${_formatDate(widget.note.updatedAt)}', style: const TextStyle(fontSize: 12, color: gray500)),
               ],
             ),
-            if (widget.note.tags.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              Wrap(
-                spacing: 8,
-                runSpacing: 4,
-                children: widget.note.tags.map((tag) {
-                  return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: primaryColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: primaryColor.withOpacity(0.3)),
+          ],
+        ),
+        body: FadeTransition(
+          opacity: _fadeAnimation,
+          child: SlideTransition(
+            position: _slideAnimation,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Tiêu đề lớn trong body (giữ nguyên, chỉ style)
+                  Text(
+                    widget.note.title,
+                    style: const TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black87,
                     ),
-                    child: Text(
-                      tag,
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Thời gian tạo/cập nhật
+                  Row(
+                    children: [
+                      const FaIcon(FontAwesomeIcons.clock, size: 14, color: gray500),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Created: ${_formatDate(widget.note.createdAt)}',
+                        style: const TextStyle(fontSize: 12, color: gray500),
+                      ),
+                      const SizedBox(width: 16),
+                      const FaIcon(FontAwesomeIcons.penToSquare, size: 14, color: gray500),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Updated: ${_formatDate(widget.note.updatedAt)}',
+                        style: const TextStyle(fontSize: 12, color: gray500),
+                      ),
+                    ],
+                  ),
+
+                  // Tags
+                  if (widget.note.tags.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: widget.note.tags.map((tag) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: primaryColor.withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: primaryColor.withOpacity(0.25)),
+                          ),
+                          child: Text(
+                            tag,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: primaryColor,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+
+                  // Emotions
+                  if (widget.note.emotions != null && widget.note.emotions!.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      'Emotions:',
                       style: TextStyle(
-                        fontSize: 12,
-                        color: primaryColor,
-                        fontWeight: FontWeight.w500,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: gray700,
                       ),
                     ),
-                  );
-                }).toList(),
-              ),
-            ],
-            // ✅ NEW: Display Emotions
-            if (widget.note.emotions != null && widget.note.emotions!.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              Text(
-                'Emotions:',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: gray700,
-                ),
-              ),
-              const SizedBox(height: 8),
-              EmotionChips(emotions: widget.note.emotions ?? []),
-            ],
-            Text(
-              'Đây là cảm xúc được AI phân tích từ nội dung ghi chú.',
-              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-            ),
-            const SizedBox(height: 24),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.grey[50],
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey[200]!),
-              ),
-              child: QuillEditor(
-                controller: _quillController,
-                config: const QuillEditorConfig(
-                  showCursor: false,
-                  autoFocus: false,
-                ),
-                focusNode: FocusNode(),
-                scrollController: ScrollController(),
-              ),
-            ),
-            if (widget.note.sentiment != null && widget.note.sentiment!.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.psychology, color: Colors.blue),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Sentiment: ${widget.note.sentiment}',
-                      style: const TextStyle(
-                        color: Colors.blue,
-                        fontWeight: FontWeight.w500,
+                    const SizedBox(height: 8),
+                    EmotionChips(emotions: widget.note.emotions ?? []),
+                  ],
+                  Text(
+                    'Đây là cảm xúc được AI phân tích từ nội dung ghi chú.',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Nội dung ghi chú (card style + shadow nhẹ)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white, // nền trắng cho Card
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                      border: Border.all(color: Colors.grey[200]!),
+                    ),
+                    child: QuillEditor(
+                      controller: _quillController,
+                      config: const QuillEditorConfig(
+                        showCursor: false,
+                        autoFocus: false,
+                        expands: false,
+                      ),
+                      focusNode: FocusNode(),
+                      scrollController: ScrollController(),
+                    ),
+                  ),
+
+                  // Sentiment (nếu có)
+                  if (widget.note.sentiment != null && widget.note.sentiment!.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.psychology, color: Colors.blue),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Sentiment: ${widget.note.sentiment}',
+                            style: const TextStyle(
+                              color: Colors.blue,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
-                ),
+                ],
               ),
-            ],
-          ],
+            ),
+          ),
         ),
       ),
-    ),
-  );
-}
-
+    );
+  }
 
   void _showDeleteDialog() {
     showDialog(
@@ -278,10 +331,10 @@ Widget build(BuildContext context) {
     // Implement share functionality
     final content = _quillController.document.toPlainText();
     final shareText = '${widget.note.title}\n\n$content';
-    
+
     // You can use share_plus package for actual sharing
     // Share.share(shareText);
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Share functionality - implement with share_plus package')),
     );
@@ -293,6 +346,7 @@ Widget build(BuildContext context) {
 
   @override
   void dispose() {
+    _animationController.dispose();
     _quillController.dispose();
     super.dispose();
   }

@@ -16,9 +16,17 @@ class NoteIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      icon: FaIcon(icon, size: size, color: gray700),
-      onPressed: onPressed,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        splashColor: primaryColor.withOpacity(0.1),
+        onTap: onPressed,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: FaIcon(icon, size: size, color: gray700),
+        ),
+      ),
     );
   }
 }

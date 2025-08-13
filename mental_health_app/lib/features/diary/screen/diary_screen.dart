@@ -21,10 +21,11 @@ class DiaryScreen extends StatefulWidget {
   @override
   State<DiaryScreen> createState() => _DiaryScreenState();
 }
+class _DiaryScreenState extends State<DiaryScreen> with TickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
 
-class _DiaryScreenState extends State<DiaryScreen> {
-  // These states are now managed by NotesProvider, but we keep them for UI interaction
-  // and to update the provider.
   late String _sortOption;
   late bool _isDescending;
   bool _isGrid = true; // State for toggling between grid and list view
@@ -32,6 +33,26 @@ class _DiaryScreenState extends State<DiaryScreen> {
   @override
   void initState() {
     super.initState();
+
+    // Animation setup
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.1),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
+    _animationController.forward();
+
     // Initialize local states from provider
     final notesProvider = context.read<NotesProvider>();
     _sortOption = notesProvider.sortOption;
@@ -42,19 +63,24 @@ class _DiaryScreenState extends State<DiaryScreen> {
     });
   }
 
-  void _loadNotes() {
-  final authProvider = context.read<AuthProvider>();
-  final userId = authProvider.userId;
-
-  if (userId == null) {
-    print("⚠️ userId is null, cannot load notes.");
-    return;
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
-  final notesProvider = context.read<NotesProvider>();
-  notesProvider.fetchNotes(userId);
-}
+  void _loadNotes() {
+    final authProvider = context.read<AuthProvider>();
+    final userId = authProvider.userId;
 
+    if (userId == null) {
+      print("⚠️ userId is null, cannot load notes.");
+      return;
+    }
+
+    final notesProvider = context.read<NotesProvider>();
+    notesProvider.fetchNotes(userId);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,30 +89,35 @@ class _DiaryScreenState extends State<DiaryScreen> {
         colorScheme: ColorScheme.fromSeed(seedColor: primaryColor),
         scaffoldBackgroundColor: background,
         appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.transparent, // AppBar background from EmotionEntry
+          backgroundColor: Colors.transparent,
           elevation: 0,
         ),
       ),
       child: Scaffold(
+        backgroundColor: Colors.grey[100],
         appBar: AppBar(
-          automaticallyImplyLeading: false, // As in EmotionEntry
-          title: const Text("Emotion Entry 📒"), // Title from EmotionEntry
+          backgroundColor: Colors.white,
+          elevation: 0,
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: Colors.black),
+          title: const Text(
+            'My Diary',
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          ),
           titleTextStyle: const TextStyle(
             color: primaryColor,
             fontSize: 32,
-            fontFamily: 'Fredo', // Assuming 'Fredo' font is available
+            fontFamily: 'Fredo',
             fontWeight: FontWeight.bold,
           ),
           actions: [
-            // Logout button from EmotionEntry
             NoteIconButtonOutlined(
               icon: FontAwesomeIcons.rightFromBracket,
               onPressed: () {
-                //Navigate to Homepage or logout logic
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const Homepage()));
-                // ScaffoldMessenger.of(context).showSnackBar(
-                //   const SnackBar(content: Text('Logout functionality here')),
-                // );
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const Homepage()),
+                );
               },
             ),
             const SizedBox(width: 16),
@@ -97,17 +128,15 @@ class _DiaryScreenState extends State<DiaryScreen> {
             final notes = notesProvider.filteredNotes;
 
             return notes.isEmpty
-                ? const NoNotes() // Use NoNotes widget from EmotionEntry
+                ? const NoNotes()
                 : Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Column(
                       children: [
-                        // Search Field from EmotionEntry
                         const SearchField(),
                         const SizedBox(height: 8),
                         Row(
                           children: [
-                            // Sort order button from EmotionEntry
                             NoteIconButton(
                               icon: notesProvider.isDescending
                                   ? FontAwesomeIcons.arrowDown
@@ -115,13 +144,13 @@ class _DiaryScreenState extends State<DiaryScreen> {
                               size: 18,
                               onPressed: () {
                                 setState(() {
-                                  notesProvider.isDescending = !notesProvider.isDescending;
-                                  _isDescending = notesProvider.isDescending; // Update local state
+                                  notesProvider.isDescending =
+                                      !notesProvider.isDescending;
+                                  _isDescending = notesProvider.isDescending;
                                 });
                               },
                             ),
                             const SizedBox(width: 16),
-                            // Sort option dropdown from EmotionEntry
                             DropdownButton<String>(
                               value: notesProvider.sortOption,
                               borderRadius: BorderRadius.circular(16),
@@ -134,33 +163,36 @@ class _DiaryScreenState extends State<DiaryScreen> {
                                   color: gray700,
                                 ),
                               ),
-                              items: ['Date modified', 'Date created'].map((e) {
-                                return DropdownMenuItem(
-                                  value: e,
-                                  child: Row(
-                                    children: [
-                                      Text(e),
-                                      if (e == notesProvider.sortOption) ...[
-                                        const SizedBox(width: 8),
-                                        const Icon(Icons.check, color: primaryColor),
-                                      ],
-                                    ],
-                                  ),
-                                );
-                              }).toList(),
-                              selectedItemBuilder: (context) =>
-                                  ['Date modified', 'Date created'].map((e) => Text(e)).toList(),
+                              items: ['Date modified', 'Date created']
+                                  .map((e) => DropdownMenuItem(
+                                        value: e,
+                                        child: Row(
+                                          children: [
+                                            Text(e),
+                                            if (e == notesProvider.sortOption)
+                                              ...[
+                                                const SizedBox(width: 8),
+                                                const Icon(Icons.check,
+                                                    color: primaryColor),
+                                              ],
+                                          ],
+                                        ),
+                                      ))
+                                  .toList(),
+                              selectedItemBuilder: (context) => [
+                                'Date modified',
+                                'Date created'
+                              ].map((e) => Text(e)).toList(),
                               onChanged: (newValue) {
                                 if (newValue != null) {
                                   setState(() {
                                     notesProvider.sortOption = newValue;
-                                    _sortOption = newValue; // Update local state
+                                    _sortOption = newValue;
                                   });
                                 }
                               },
                             ),
                             const Spacer(),
-                            // Grid/List toggle button from EmotionEntry
                             NoteIconButton(
                               icon: _isGrid
                                   ? FontAwesomeIcons.tableCellsLarge
@@ -179,8 +211,20 @@ class _DiaryScreenState extends State<DiaryScreen> {
                           child: RefreshIndicator(
                             onRefresh: () async => _loadNotes(),
                             child: _isGrid
-                                ? NotesGrid(notes: notes) // Use NotesGrid
-                                : NotesList(notes: notes), // Use NotesList
+                                ? FadeTransition(
+                                    opacity: _fadeAnimation,
+                                    child: SlideTransition(
+                                      position: _slideAnimation,
+                                      child: NotesGrid(notes: notes),
+                                    ),
+                                  )
+                                : FadeTransition(
+                                    opacity: _fadeAnimation,
+                                    child: SlideTransition(
+                                      position: _slideAnimation,
+                                      child: NotesList(notes: notes),
+                                    ),
+                                  ),
                           ),
                         ),
                       ],
@@ -188,7 +232,6 @@ class _DiaryScreenState extends State<DiaryScreen> {
                   );
           },
         ),
-        // Floating Action Button from EmotionEntry
         floatingActionButton: NoteFab(
           onPressed: () {
             final controller = context.read<NewNoteController>();
@@ -196,13 +239,14 @@ class _DiaryScreenState extends State<DiaryScreen> {
             print("User ID ở NoteFab: $userId");
             if (userId == null) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Bạn cần đăng nhập trước khi tạo ghi chú.')),
+                const SnackBar(
+                    content: Text('Bạn cần đăng nhập trước khi tạo ghi chú.')),
               );
               return;
             }
 
             controller.userId = userId;
-            controller.contentJson = '[]'; // Initialize content for new note
+            controller.contentJson = '[]';
 
             Navigator.push(
               context,
@@ -214,7 +258,6 @@ class _DiaryScreenState extends State<DiaryScreen> {
               ),
             );
           },
-
         ),
       ),
     );

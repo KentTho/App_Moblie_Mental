@@ -40,7 +40,22 @@ class _ReminderFormPageState extends State<ReminderFormPage> {
       context: context,
       initialDate: _scheduledDateTime,
       firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365 * 5)), // 5 years from now
+      lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFF4CAF50), // xanh lá chủ đạo
+              onPrimary: Colors.white,
+              onSurface: Colors.black87,
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(foregroundColor: const Color(0xFF4CAF50)),
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
     if (picked != null && picked != _scheduledDateTime) {
       setState(() {
@@ -59,6 +74,21 @@ class _ReminderFormPageState extends State<ReminderFormPage> {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(_scheduledDateTime),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFF4CAF50),
+              onPrimary: Colors.white,
+              onSurface: Colors.black87,
+            ),
+            timePickerTheme: TimePickerThemeData(
+              dialHandColor: Color(0xFF4CAF50),
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
     if (picked != null) {
       setState(() {
@@ -74,27 +104,27 @@ class _ReminderFormPageState extends State<ReminderFormPage> {
   }
 
   Future<void> scheduleNotification(Reminder reminder) async {
-  await AwesomeNotifications().createNotification(
-    schedule: NotificationCalendar(
-      year: reminder.scheduledTime.year,
-      month: reminder.scheduledTime.month,
-      day: reminder.scheduledTime.day,
-      hour: reminder.scheduledTime.hour,
-      minute: reminder.scheduledTime.minute,
-      second: 0,
-      millisecond: 0,
-      repeats: false,
-      preciseAlarm: true,
-    ),
-    content: NotificationContent(
-      id: reminder.scheduledTime.millisecondsSinceEpoch.remainder(100000), // ID duy nhất
-      channelKey: 'reminder_channel',
-      title: '🧠 Reminder',
-      body: reminder.message,
-      notificationLayout: NotificationLayout.Default,
-    ),
-  );
-}
+    await AwesomeNotifications().createNotification(
+      schedule: NotificationCalendar(
+        year: reminder.scheduledTime.year,
+        month: reminder.scheduledTime.month,
+        day: reminder.scheduledTime.day,
+        hour: reminder.scheduledTime.hour,
+        minute: reminder.scheduledTime.minute,
+        second: 0,
+        millisecond: 0,
+        repeats: false,
+        preciseAlarm: true,
+      ),
+      content: NotificationContent(
+        id: reminder.scheduledTime.millisecondsSinceEpoch.remainder(100000),
+        channelKey: 'reminder_channel',
+        title: '🧠 Reminder',
+        body: reminder.message,
+        notificationLayout: NotificationLayout.Default,
+      ),
+    );
+  }
 
   void _saveReminder() async {
     if (_formKey.currentState!.validate()) {
@@ -110,7 +140,6 @@ class _ReminderFormPageState extends State<ReminderFormPage> {
       Reminder? savedReminder;
 
       if (widget.reminder == null) {
-        // ✅ Tạo mới và lưu kết quả
         savedReminder = await reminderProvider.addReminder(context, newReminder);
       } else {
         final updatedReminder = Reminder(
@@ -124,7 +153,6 @@ class _ReminderFormPageState extends State<ReminderFormPage> {
         savedReminder = updatedReminder;
       }
 
-      // ✅ Lên lịch nếu là reminder đang active và có dữ liệu
       if (_isActive && savedReminder != null) {
         await scheduleNotification(savedReminder);
       }
@@ -139,14 +167,13 @@ class _ReminderFormPageState extends State<ReminderFormPage> {
     }
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         title: Text(widget.reminder == null ? 'Add New Reminder' : 'Edit Reminder'),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: const Color(0xFF4CAF50),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -163,7 +190,7 @@ class _ReminderFormPageState extends State<ReminderFormPage> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  prefixIcon: const Icon(Icons.message),
+                  prefixIcon: const Icon(Icons.message, color: Color(0xFF4CAF50)),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -184,11 +211,11 @@ class _ReminderFormPageState extends State<ReminderFormPage> {
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          prefixIcon: const Icon(Icons.calendar_today),
+                          prefixIcon: const Icon(Icons.calendar_today, color: Color(0xFF4CAF50)),
                         ),
                         child: Text(
                           DateFormat('MMM dd, yyyy').format(_scheduledDateTime),
-                          style: const TextStyle(fontSize: 16),
+                          style: const TextStyle(fontSize: 16, color: Color(0xFF1A1A1A)),
                         ),
                       ),
                     ),
@@ -203,11 +230,11 @@ class _ReminderFormPageState extends State<ReminderFormPage> {
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          prefixIcon: const Icon(Icons.access_time),
+                          prefixIcon: const Icon(Icons.access_time, color: Color(0xFF4CAF50)),
                         ),
                         child: Text(
                           DateFormat('hh:mm a').format(_scheduledDateTime),
-                          style: const TextStyle(fontSize: 16),
+                          style: const TextStyle(fontSize: 16, color: Color(0xFF1A1A1A)),
                         ),
                       ),
                     ),
@@ -223,7 +250,7 @@ class _ReminderFormPageState extends State<ReminderFormPage> {
                     _isActive = value;
                   });
                 },
-                activeColor: Colors.deepPurple,
+                activeColor: const Color(0xFF4CAF50),
               ),
               const SizedBox(height: 30),
               Center(
@@ -246,7 +273,7 @@ class _ReminderFormPageState extends State<ReminderFormPage> {
                         style: const TextStyle(fontSize: 18, color: Colors.white),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.deepPurple,
+                        backgroundColor: const Color(0xFF4CAF50),
                         padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),

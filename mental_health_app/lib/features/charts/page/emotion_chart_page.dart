@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:mental_health_app/change_notifiers/chart_provider.dart';
 import 'package:mental_health_app/models/emotion_chart_model.dart';
-import 'emotion_line_chart.dart';
+import 'emotion_pie_chart.dart';
 
 class EmotionChartPage extends StatefulWidget {
   const EmotionChartPage({super.key});
@@ -12,7 +12,7 @@ class EmotionChartPage extends StatefulWidget {
 }
 
 class _EmotionChartPageState extends State<EmotionChartPage> {
-  int selectedDays = 3; // Mặc định 7 ngày
+  int selectedDays = 3;
   bool _isLoading = false;
 
   @override
@@ -42,9 +42,15 @@ class _EmotionChartPageState extends State<EmotionChartPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF0F4F8),
       appBar: AppBar(
-        title: const Text('Biểu đồ Cảm xúc'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         centerTitle: true,
+        title: const Text(
+          'Biểu đồ Cảm xúc',
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF2E7D32)),
+        ),
         actions: [_buildTimeRangeDropdown()],
       ),
       body: _buildBodyContent(),
@@ -54,21 +60,31 @@ class _EmotionChartPageState extends State<EmotionChartPage> {
   Widget _buildTimeRangeDropdown() {
     return Container(
       margin: const EdgeInsets.only(right: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12.withOpacity(0.05),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          )
+        ],
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<int>(
           value: selectedDays,
-          icon: const Icon(Icons.arrow_drop_down, color: Colors.deepPurple),
-          items: [1, 3, 7, 14].map((days) => DropdownMenuItem(
-            value: days,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Text('$days ngày', style: const TextStyle(fontSize: 14)),
-            ),
-          )).toList(),
+          icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF2E7D32)),
+          items: [1, 3, 7, 14]
+              .map((days) => DropdownMenuItem(
+                    value: days,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Text('$days ngày', style: const TextStyle(fontSize: 14, color: Colors.black87)),
+                    ),
+                  ))
+              .toList(),
           onChanged: _handleDaysChange,
         ),
       ),
@@ -81,7 +97,7 @@ class _EmotionChartPageState extends State<EmotionChartPage> {
         if (_isLoading) return _buildLoadingState();
         if (chartProvider.errorMessage != null) return _buildErrorState(chartProvider);
         if (chartProvider.emotionChartData?.data.isEmpty ?? true) return _buildEmptyState();
-        
+
         return SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -103,7 +119,7 @@ class _EmotionChartPageState extends State<EmotionChartPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(),
+          CircularProgressIndicator(color: Color(0xFF2E7D32)),
           SizedBox(height: 16),
           Text('Đang tải dữ liệu cảm xúc...', style: TextStyle(color: Colors.grey)),
         ],
@@ -125,8 +141,13 @@ class _EmotionChartPageState extends State<EmotionChartPage> {
           ),
           const SizedBox(height: 16),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2E7D32),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
             onPressed: _loadData,
-            child: const Text('Thử lại'),
+            child: const Text('Thử lại', style: TextStyle(color: Colors.white, fontSize: 16)),
           ),
         ],
       ),
@@ -156,11 +177,12 @@ class _EmotionChartPageState extends State<EmotionChartPage> {
           const SizedBox(height: 20),
           ElevatedButton.icon(
             onPressed: () => Navigator.pushNamed(context, '/journal'),
-            icon: const Icon(Icons.edit),
-            label: const Text('Ghi chép ngay'),
+            icon: const Icon(Icons.edit, color: Colors.white),
+            label: const Text('Ghi chép ngay', style: TextStyle(color: Colors.white)),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.deepPurple,
-              foregroundColor: Colors.white,
+              backgroundColor: const Color(0xFF2E7D32),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
           ),
         ],
@@ -169,78 +191,88 @@ class _EmotionChartPageState extends State<EmotionChartPage> {
   }
 
   Widget _buildEmotionChartCard(ChartProvider provider) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.insights, color: Colors.deepPurple),
-                const SizedBox(width: 8),
-                Text(
-                  'Xu hướng cảm xúc ($selectedDays ngày)',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              height: 280,
-              child: EmotionLineChart(data: provider.emotionChartData!.data),
-            ),
-          ],
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: LinearGradient(
+          colors: [Colors.greenAccent.shade100, Colors.green.shade200],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.green.shade100.withOpacity(0.6),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: const [
+              Icon(Icons.insights, color: Colors.white),
+              SizedBox(width: 8),
+              Text(
+                'Xu hướng cảm xúc',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 420,
+            child: EmotionPieChart(data: provider.emotionChartData!.data),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildStatsSummary(ChartProvider provider) {
     final dominantEmotion = _getDominantEmotion(provider.emotionChartData!.data);
-    
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            const Row(
-              children: [
-                Icon(Icons.analytics, color: Colors.deepPurple),
-                SizedBox(width: 8),
-                Text(
-                  'Tổng quan cảm xúc',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                _buildStatItem(
-                  'Cảm xúc chủ đạo',
-                  StringExtension(dominantEmotion.name).capitalize(),
-                  _getEmotionColor(dominantEmotion.name),
-                  dominantEmotion.count,
-                ),
-                const SizedBox(width: 16),
-                _buildStatItem(
-                  'Ngày tích cực',
-                  _countPositiveDays(provider.emotionChartData!.data).toString(),
-                  Colors.green,
-                  null,
-                ),
-              ],
-            ),
-          ],
-        ),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(color: Colors.black12.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 6)),
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.analytics, color: Color(0xFF2E7D32)),
+              SizedBox(width: 8),
+              Text(
+                'Tổng quan cảm xúc',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              _buildStatItem(
+                'Cảm xúc chủ đạo',
+                StringExtension(dominantEmotion.name).capitalize(),
+                _getEmotionColor(dominantEmotion.name),
+                dominantEmotion.count,
+              ),
+              const SizedBox(width: 16),
+              _buildStatItem(
+                'Ngày tích cực',
+                _countPositiveDays(provider.emotionChartData!.data).toString(),
+                Colors.green,
+                null,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -250,48 +282,23 @@ class _EmotionChartPageState extends State<EmotionChartPage> {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(8),
+          color: color.withOpacity(0.15),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(color: color.withOpacity(0.3)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey[700],
-              ),
-            ),
+            Text(title, style: TextStyle(fontSize: 13, color: Colors.grey[700])),
             const SizedBox(height: 4),
             Row(
               children: [
-                Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    color: color,
-                    shape: BoxShape.circle,
-                  ),
-                ),
+                Container(width: 12, height: 12, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
                 const SizedBox(width: 8),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 if (count != null) ...[
                   const SizedBox(width: 4),
-                  Text(
-                    '($count lần)',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                    ),
-                  ),
+                  Text('($count lần)', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
                 ],
               ],
             ),
@@ -304,128 +311,56 @@ class _EmotionChartPageState extends State<EmotionChartPage> {
   Widget _buildDailyEmotionList(ChartProvider provider) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Row(
-          children: [
-            Icon(Icons.calendar_today, color: Colors.deepPurple, size: 18),
-            SizedBox(width: 8),
-            Text(
-              'Chi tiết theo ngày',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      children: provider.emotionChartData!.data.map((dataPoint) {
+        final dominantEmotion = dataPoint.emotionCounts.entries.isNotEmpty
+            ? dataPoint.emotionCounts.entries.reduce((a, b) => a.value > b.value ? a : b).key
+            : 'calm';
+        final gradientColor = _getEmotionColor(dominantEmotion).withOpacity(0.3);
+        return Container(
+          margin: const EdgeInsets.symmetric(vertical: 6),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [gradientColor, Colors.white],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        ListView.separated(
-          physics: const NeverScrollableScrollPhysics(),
-          shrinkWrap: true,
-          itemCount: provider.emotionChartData!.data.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 8),
-          itemBuilder: (context, index) {
-            final dataPoint = provider.emotionChartData!.data[index];
-            return _buildDayEmotionCard(dataPoint);
-          },
-        ),
-      ],
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(color: gradientColor.withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 4)),
+            ],
+          ),
+          child: ExpansionTile(
+            title: Text(
+              dataPoint.formattedDate,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            children: dataPoint.emotionCounts.entries.map((e) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                child: Chip(
+                  label: Text('${StringExtension(e.key).capitalize()}: ${e.value}'),
+                  backgroundColor: _getEmotionColor(e.key).withOpacity(0.2),
+                ),
+              );
+            }).toList(),
+          ),
+        );
+      }).toList(),
     );
   }
 
-
-  Widget _buildDayEmotionCard(EmotionDataPoint dataPoint) {
-  final isToday = dataPoint.date.day == DateTime.now().day &&
-                  dataPoint.date.month == DateTime.now().month &&
-                  dataPoint.date.year == DateTime.now().year;
-
-  // Xác định cảm xúc chính của ngày (nổi bật nhất)
-  final dominantEmotion = dataPoint.emotionCounts.isNotEmpty
-      ? dataPoint.emotionCounts.entries.reduce((a, b) => a.value > b.value ? a : b).key
-      : 'calm';
-
-  return Card(
-    elevation: 1,
-    margin: EdgeInsets.symmetric(vertical: 4),
-    color: _getEmotionColor(dominantEmotion).withOpacity(0.07),
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-    child: ExpansionTile(
-      tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      title: Text(
-        dataPoint.formattedDate,
-        style: TextStyle(
-          fontWeight: FontWeight.w600,
-          fontSize: 16,
-          color: isToday ? Colors.deepPurple : Colors.black87,
-        ),
-      ),
-      subtitle: Text(
-        'Cảm xúc nổi bật: ${StringExtension(dominantEmotion).capitalize()}',
-        style: TextStyle(
-          fontSize: 13,
-          color: _getEmotionColor(dominantEmotion),
-        ),
-      ),
-      leading: Icon(
-        isToday ? Icons.today : Icons.calendar_today,
-        color: isToday ? Colors.deepPurple : Colors.grey[700],
-      ),
-      childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-      children: [
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: dataPoint.emotionCounts.entries.map((entry) {
-            final emotion = entry.key;
-            final count = entry.value;
-            final color = _getEmotionColor(emotion);
-
-            return Chip(
-              backgroundColor: color.withOpacity(0.2),
-              label: Text(
-                '${StringExtension(emotion).capitalize()}: $count',
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: Colors.black87,
-                ),
-              ),
-              avatar: Icon(
-                _getEmotionIcon(emotion),
-                size: 18,
-                color: color,
-              ),
-              shape: StadiumBorder(
-                side: BorderSide(color: color.withOpacity(0.3)),
-              ),
-            );
-          }).toList(),
-        ),
-      ],
-    ),
-  );
-
-}
-
-
-
-  // Helper functions
   DominantEmotion _getDominantEmotion(List<EmotionDataPoint> data) {
-  if (data.isEmpty) return DominantEmotion('unknown', 0); // tránh reduce() lỗi
-
-  final emotionCounts = <String, int>{};
-
-  for (final day in data) {
-    for (final entry in day.emotionCounts.entries) {
-      emotionCounts[entry.key] = (emotionCounts[entry.key] ?? 0) + entry.value;
+    if (data.isEmpty) return DominantEmotion('unknown', 0);
+    final emotionCounts = <String, int>{};
+    for (final day in data) {
+      for (final entry in day.emotionCounts.entries) {
+        emotionCounts[entry.key] = (emotionCounts[entry.key] ?? 0) + entry.value;
+      }
     }
+    if (emotionCounts.isEmpty) return DominantEmotion('unknown', 0);
+    final dominantEntry = emotionCounts.entries.reduce((a, b) => a.value > b.value ? a : b);
+    return DominantEmotion(dominantEntry.key, dominantEntry.value);
   }
-
-  if (emotionCounts.isEmpty) return DominantEmotion('unknown', 0); // tránh reduce() lỗi
-
-  final dominantEntry = emotionCounts.entries.reduce(
-    (a, b) => a.value > b.value ? a : b,
-  );
-
-  return DominantEmotion(dominantEntry.key, dominantEntry.value);
-}
-
 
   int _countPositiveDays(List<EmotionDataPoint> data) {
     const positiveEmotions = ['joy', 'excitement', 'calm'];
@@ -437,34 +372,45 @@ class _EmotionChartPageState extends State<EmotionChartPage> {
     }).length;
   }
 
-IconData _getEmotionIcon(String emotion) {
-  switch (emotion.toLowerCase()) {
-    case 'joy':
-      return Icons.emoji_emotions;
-    case 'sadness':
-      return Icons.sentiment_dissatisfied;
-    case 'anger':
-      return Icons.whatshot;
-    case 'fear':
-      return Icons.warning_amber_rounded;
-    case 'calm':
-      return Icons.self_improvement;
-    default:
-      return Icons.sentiment_neutral;
+  IconData _getEmotionIcon(String emotion) {
+    switch (emotion.toLowerCase()) {
+      case 'joy':
+        return Icons.emoji_emotions;
+      case 'sadness':
+        return Icons.sentiment_dissatisfied;
+      case 'anger':
+        return Icons.whatshot;
+      case 'fear':
+        return Icons.warning_amber_rounded;
+      case 'calm':
+        return Icons.self_improvement;
+      default:
+        return Icons.sentiment_neutral;
+    }
   }
-}
+
   Color _getEmotionColor(String emotion) {
     switch (emotion.toLowerCase()) {
-      case 'joy': return const Color.fromARGB(255, 255, 251, 3); // green
-      case 'sadness': return const Color(0xFF2196F3); // blue
-      case 'anger': return const Color(0xFFF44336); // red
-      case 'fear': return const Color(0xFF9C27B0); // purple
-      case 'surprise': return const Color(0xFFFF9800); // orange
-      case 'disgust': return const Color(0xFF8BC34A); // light green
-      case 'calm': return const Color.fromARGB(255, 7, 238, 255); // cyan
-      case 'excitement': return const Color(0xFFE91E63); // pink
-      case 'enjoyment': return const Color.fromARGB(255, 140, 253, 95); // brown
-      default: return Colors.grey;
+      case 'joy':
+        return const Color(0xFFFFEB3B);
+      case 'sadness':
+        return const Color(0xFF2196F3);
+      case 'anger':
+        return const Color(0xFFF44336);
+      case 'fear':
+        return const Color(0xFF9C27B0);
+      case 'surprise':
+        return const Color(0xFFFF9800);
+      case 'disgust':
+        return const Color(0xFF8BC34A);
+      case 'calm':
+        return const Color(0xFF00BCD4);
+      case 'excitement':
+        return const Color(0xFFE91E63);
+      case 'enjoyment':
+        return const Color(0xFF8CFD5F);
+      default:
+        return Colors.grey;
     }
   }
 }
@@ -472,7 +418,6 @@ IconData _getEmotionIcon(String emotion) {
 class DominantEmotion {
   final String name;
   final int count;
-
   DominantEmotion(this.name, this.count);
 }
 

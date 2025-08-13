@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:mental_health_app/features/home/profile/profile_page.dart';
-
 import '../auth/page/change_password_page.dart';
 
 class SecurityPage extends StatefulWidget {
@@ -23,13 +22,12 @@ class _SecurityPageState extends State<SecurityPage> {
     _currentUser = FirebaseAuth.instance.currentUser;
   }
 
-    Future<void> _updateVerificationStatus(bool isVerified) async {
+  Future<void> _updateVerificationStatus(bool isVerified) async {
     if (_currentUser == null) {
       _showSnackBar('Không tìm thấy người dùng', isError: true);
       return;
     }
 
-    // ✅ Luôn refresh user trước để kiểm tra trạng thái email
     await _currentUser!.reload();
     final refreshedUser = FirebaseAuth.instance.currentUser;
 
@@ -38,9 +36,7 @@ class _SecurityPageState extends State<SecurityPage> {
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
       final response = await _dio.put(
@@ -59,9 +55,7 @@ class _SecurityPageState extends State<SecurityPage> {
     } catch (e) {
       _showSnackBar('Lỗi cập nhật trạng thái: ${e.toString()}', isError: true);
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
     }
   }
 
@@ -71,52 +65,29 @@ class _SecurityPageState extends State<SecurityPage> {
       return;
     }
 
-    // Show confirmation dialog
     final bool? confirmed = await showDialog<bool>(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          title: const Text(
-            'Xác nhận xóa tài khoản',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF2D3748),
-            ),
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        title: const Text('Xác nhận xóa tài khoản', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: const Text('Bạn có chắc chắn muốn xóa tài khoản? Hành động này không thể hoàn tác.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Hủy', style: TextStyle(color: Colors.grey)),
           ),
-          content: const Text(
-            'Bạn có chắc chắn muốn xóa tài khoản? Hành động này không thể hoàn tác.',
-            style: TextStyle(color: Color(0xFF4A5568)),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Xóa'),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text(
-                'Hủy',
-                style: TextStyle(color: Color(0xFF4CAF50)),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-              child: const Text(
-                'Xóa',
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-          ],
-        );
-      },
+        ],
+      ),
     );
 
     if (confirmed != true) return;
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
       final response = await _dio.delete(
@@ -124,23 +95,14 @@ class _SecurityPageState extends State<SecurityPage> {
       );
 
       if (response.statusCode == 200) {
-        // Delete Firebase user
         await _currentUser!.delete();
-
         _showSnackBar('Tài khoản đã được xóa thành công');
-
-        // Navigate back to login
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          '/login',
-              (Route<dynamic> route) => false,
-        );
+        Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
       }
     } catch (e) {
       _showSnackBar('Lỗi xóa tài khoản: ${e.toString()}', isError: true);
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
     }
   }
 
@@ -148,298 +110,158 @@ class _SecurityPageState extends State<SecurityPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? Colors.red : Color(0xFF4CAF50),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        backgroundColor: isError ? Colors.red : Colors.green,
       ),
     );
   }
 
-  // ✅ Đã thêm:
-Future<void> sendVerificationEmail() async {
-  final user = FirebaseAuth.instance.currentUser;
-  await user?.reload(); // Làm mới thông tin user từ Firebase
-  final refreshedUser = FirebaseAuth.instance.currentUser;
+  Future<void> sendVerificationEmail() async {
+    final user = FirebaseAuth.instance.currentUser;
+    await user?.reload();
+    final refreshedUser = FirebaseAuth.instance.currentUser;
 
-  if (refreshedUser != null && refreshedUser.emailVerified) {
-    _showSnackBar('Email đã được xác thực trước đó!');
-    // ✅ BONUS: Gửi thông tin xác thực đến BE nếu chưa update
-    await _updateVerificationStatus(true);
-  } else if (refreshedUser != null) {
-    try {
-      await refreshedUser.sendEmailVerification();
-      _showSnackBar('Email xác thực đã được gửi');
-    } catch (e) {
-      _showSnackBar('Lỗi gửi email xác thực: ${e.toString()}', isError: true);
+    if (refreshedUser != null && refreshedUser.emailVerified) {
+      _showSnackBar('Email đã được xác thực trước đó!');
+      await _updateVerificationStatus(true);
+    } else if (refreshedUser != null) {
+      try {
+        await refreshedUser.sendEmailVerification();
+        _showSnackBar('Email xác thực đã được gửi');
+      } catch (e) {
+        _showSnackBar('Lỗi gửi email xác thực: ${e.toString()}', isError: true);
+      }
     }
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFFE8F5E8), // Soft mint green
-              Color(0xFFF0FFF0), // Honeydew
-              Color(0xFFF5FFFA), // Mint cream
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Custom App Bar
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF4CAF50), Color(0xFF2E7D32)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+      backgroundColor: const Color(0xFFF8F9FA),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // AppBar giống ProfilePage
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.08),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
                   ),
-                  borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(30),
-                    bottomRight: Radius.circular(30),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Color(0xFF4CAF50).withOpacity(0.3),
-                      blurRadius: 10,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pop(context);
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfilePage()));
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(
-                          Icons.arrow_back_ios_rounded,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      ),
-                    ),
-                    const Expanded(
-                      child: Text(
-                        "Bảo mật",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.security_rounded,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                    ),
-                  ],
-                ),
+                ],
               ),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfilePage()));
+                    },
+                  ),
+                  const Expanded(
+                    child: Text(
+                      "Bảo mật",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  const Icon(Icons.security_rounded, color: Colors.green, size: 22),
+                ],
+              ),
+            ),
 
-              // Main Content
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: SingleChildScrollView(
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  const SizedBox(height: 8),
+                  _buildSecurityCard(
+                    icon: Icons.verified_user_rounded,
+                    title: "Xác thực tài khoản",
+                    subtitle: "Cập nhật trạng thái xác thực",
+                    color: Colors.green,
+                    onTap: () async {
+                      final user = FirebaseAuth.instance.currentUser;
+                      await user?.reload();
+                      final refreshedUser = FirebaseAuth.instance.currentUser;
+                      if (refreshedUser != null && refreshedUser.emailVerified) {
+                        await _updateVerificationStatus(true);
+                      } else {
+                        _showSnackBar('Bạn chưa xác thực email. Vui lòng kiểm tra hộp thư.', isError: true);
+                      }
+                    },
+                  ),
+                  _buildSecurityCard(
+                    icon: Icons.remove_circle_outline_rounded,
+                    title: "Hủy xác thực",
+                    subtitle: "Gỡ bỏ trạng thái xác thực",
+                    color: Colors.orange,
+                    onTap: () => _updateVerificationStatus(false),
+                  ),
+                  _buildSecurityCard(
+                    icon: Icons.password_rounded,
+                    title: "Đổi mật khẩu",
+                    subtitle: "Cập nhật mật khẩu đăng nhập",
+                    color: Colors.teal,
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const ChangePasswordPage()));
+                    },
+                  ),
+                  _buildSecurityCard(
+                    icon: Icons.mark_email_read_rounded,
+                    title: "Gửi email xác thực",
+                    subtitle: "Gửi liên kết xác thực đến email",
+                    color: Colors.blue,
+                    onTap: sendVerificationEmail,
+                  ),
+
+                  const SizedBox(height: 20),
+                  // Danger Zone
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.red.withOpacity(0.15)),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.red.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                    ),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(height: 20),
-
-                        // Security Icon
-                        Container(
-                          width: 100,
-                          height: 100,
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF66BB6A), Color(0xFF4CAF50)],
-                            ),
-                            borderRadius: BorderRadius.circular(25),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Color(0xFF4CAF50).withOpacity(0.3),
-                                blurRadius: 15,
-                                offset: const Offset(0, 8),
-                              ),
-                            ],
-                          ),
-                          child: const Icon(
-                            Icons.security_rounded,
-                            size: 50,
-                            color: Colors.white,
-                          ),
-                        ),
-
-                        const SizedBox(height: 30),
-
-                        // Security Options
-                        _buildSecurityCard(
-                          icon: Icons.verified_user_rounded,
-                          title: "Xác thực tài khoản",
-                          subtitle: "Cập nhật trạng thái xác thực",
-                          colors: [Color(0xFF4CAF50), Color(0xFF66BB6A)],
-                          onTap: () async {
-                            final user = FirebaseAuth.instance.currentUser;
-                            await user?.reload(); // refresh trạng thái mới nhất từ Firebase
-                            final refreshedUser = FirebaseAuth.instance.currentUser;
-
-                            if (refreshedUser != null && refreshedUser.emailVerified) {
-                              await _updateVerificationStatus(true);
-                            } else {
-                              _showSnackBar('Bạn chưa xác thực email. Vui lòng kiểm tra hộp thư đến.', isError: true);
-                            }
-                          },
-                        ),
-
-                        const SizedBox(height: 15),
-
-                        _buildSecurityCard(
-                          icon: Icons.remove_circle_outline_rounded,
-                          title: "Hủy xác thực",
-                          subtitle: "Gỡ bỏ trạng thái xác thực",
-                          colors: [Color(0xFFFF9800), Color(0xFFFFB74D)],
-                          onTap: () => _updateVerificationStatus(false),
-                        ),
-
-                        const SizedBox(height: 15),
-
-                        _buildSecurityCard(
-                          icon: Icons.password_rounded,
-                          title: "Đổi mật khẩu",
-                          subtitle: "Cập nhật mật khẩu đăng nhập",
-                          colors: [Color(0xFF2E7D32), Color(0xFF388E3C)],
-                          onTap: () {
-                            Navigator.pop(context);
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => const ChangePasswordPage()));
-                          },
-                        ),
-
-                        const SizedBox(height: 30),
-
-                        // ✅ Đã thêm: Gửi email xác thực
-                        _buildSecurityCard(
-                          icon: Icons.mark_email_read_rounded,
-                          title: "Gửi email xác thực",
-                          subtitle: "Gửi liên kết xác thực đến email của bạn",
-                          colors: [Color(0xFF42A5F5), Color(0xFF64B5F6)],
-                          onTap: sendVerificationEmail,
-                        ),
-
-                        const SizedBox(height: 15),
-
-                        // Danger Zone
-                        Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: Colors.red.withOpacity(0.2),
-                              width: 1,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.red.withOpacity(0.1),
-                                blurRadius: 15,
-                                offset: const Offset(0, 5),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                "Vùng nguy hiểm",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.red,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              const Text(
-                                "Các hành động trong vùng này không thể hoàn tác",
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Color(0xFF4A5568),
-                                ),
-                              ),
-                              const SizedBox(height: 20),
-                              SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton(
-                                  onPressed: _isLoading ? null : _deleteAccount,
-                                  style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(vertical: 16),
-                                    backgroundColor: Colors.red,
-                                    disabledBackgroundColor: Colors.grey[300],
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(15),
-                                    ),
-                                    elevation: 5,
-                                  ),
-                                  child: _isLoading
-                                      ? const SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                    ),
-                                  )
-                                      : const Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(Icons.delete_forever_rounded, color: Colors.white),
-                                      SizedBox(width: 8),
-                                      Text(
-                                        "Xóa tài khoản",
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 16,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
+                        const Text("Vùng nguy hiểm", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red)),
+                        const SizedBox(height: 8),
+                        const Text("Các hành động trong vùng này không thể hoàn tác", style: TextStyle(fontSize: 13, color: Colors.black54)),
+                        const SizedBox(height: 16),
+                        ElevatedButton.icon(
+                          onPressed: _isLoading ? null : _deleteAccount,
+                          icon: _isLoading
+                              ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                              : const Icon(Icons.delete_forever_rounded, color: Colors.white),
+                          label: const Text("Xóa tài khoản", style: TextStyle(color: Colors.white)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           ),
                         ),
                       ],
                     ),
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -449,71 +271,44 @@ Future<void> sendVerificationEmail() async {
     required IconData icon,
     required String title,
     required String subtitle,
-    required List<Color> colors,
+    required Color color,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(20),
+        margin: const EdgeInsets.only(bottom: 14),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: colors.first.withOpacity(0.1),
-              blurRadius: 15,
-              offset: const Offset(0, 5),
+              color: color.withOpacity(0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
             ),
           ],
-          border: Border.all(
-            color: colors.first.withOpacity(0.1),
-            width: 1,
-          ),
         ),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(colors: colors),
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: Icon(
-                icon,
-                color: Colors.white,
-                size: 24,
-              ),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(color: color.withOpacity(0.15), borderRadius: BorderRadius.circular(12)),
+              child: Icon(icon, color: color, size: 22),
             ),
-            const SizedBox(width: 15),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF2D3748),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                    ),
-                  ),
+                  Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 2),
+                  Text(subtitle, style: const TextStyle(fontSize: 13, color: Colors.black54)),
                 ],
               ),
             ),
-            Icon(
-              Icons.arrow_forward_ios_rounded,
-              color: colors.first,
-              size: 16,
-            ),
+            const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.black38),
           ],
         ),
       ),

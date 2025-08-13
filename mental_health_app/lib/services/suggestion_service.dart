@@ -8,7 +8,7 @@ import 'package:provider/provider.dart'; // Assuming this path
 
 class SuggestionService {
   final ApiService _apiService = ApiService();
-  final AuthProvider _authProvider;
+  final AuthProvider _authProvider;  
 
   SuggestionService(BuildContext context) : _authProvider = Provider.of<AuthProvider>(context, listen: false);
   

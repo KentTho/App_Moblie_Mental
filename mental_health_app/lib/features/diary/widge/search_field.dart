@@ -25,40 +25,51 @@ class _SearchFieldState extends State<SearchField> {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: _searchController,
-      decoration: InputDecoration(
-        hintText: 'Search notes...',
-        hintStyle: TextStyle(color: gray500),
-        prefixIcon: Padding(
-          padding: const EdgeInsets.only(left: 12.0, right: 8.0),
-          child: FaIcon(
-            FontAwesomeIcons.magnifyingGlass,
-            size: 18,
-            color: gray700,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
-        ),
-        prefixIconConstraints: BoxConstraints(
-          minWidth: 0,
-          minHeight: 0,
-        ),
-        suffixIcon: _searchController.text.isNotEmpty
-            ? IconButton(
-                icon: FaIcon(FontAwesomeIcons.xmark, size: 18, color: gray700),
-                onPressed: () {
-                  _searchController.clear();
-                },
-              )
-            : null,
-        filled: true,
-        fillColor: Colors.grey[100],
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+        ],
       ),
-      style: TextStyle(color: primaryColor),
+      child: TextField(
+        controller: _searchController,
+        decoration: InputDecoration(
+          hintText: 'Search notes...',
+          hintStyle: const TextStyle(color: gray500, fontSize: 14),
+          prefixIcon: Padding(
+            padding: const EdgeInsets.only(left: 12.0, right: 8.0),
+            child: FaIcon(
+              FontAwesomeIcons.magnifyingGlass,
+              size: 18,
+              color: gray700,
+            ),
+          ),
+          prefixIconConstraints: const BoxConstraints(
+            minWidth: 0,
+            minHeight: 0,
+          ),
+          suffixIcon: _searchController.text.isNotEmpty
+              ? IconButton(
+                  icon: const FaIcon(FontAwesomeIcons.xmark, size: 18, color: gray700),
+                  onPressed: () {
+                    _searchController.clear();
+                  },
+                )
+              : null,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide.none,
+          ),
+          contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+        ),
+        style: const TextStyle(color: primaryColor, fontSize: 14),
+      ),
     );
   }
 

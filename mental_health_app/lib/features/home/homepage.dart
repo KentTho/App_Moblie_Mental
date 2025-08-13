@@ -97,16 +97,21 @@ class _HomepageState extends State<Homepage> with TickerProviderStateMixin {
         width: isFullWidth ? double.infinity : null,
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+            colors: [Color(0xFF81C784), Color(0xFF66BB6A)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: primaryColor.withOpacity(0.1),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
+              color: Colors.green.withOpacity(0.3),
+              blurRadius: 16,
+              offset: Offset(0, 6),
             ),
           ],
         ),
+
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -161,13 +166,17 @@ class _HomepageState extends State<Homepage> with TickerProviderStateMixin {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          gradient: LinearGradient(
+            colors: [Color(0xFFB2DFDB), Color(0xFFC8E6C9)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 8,
+              offset: Offset(0, 4),
             ),
           ],
         ),
@@ -229,8 +238,18 @@ class _HomepageState extends State<Homepage> with TickerProviderStateMixin {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: isSelected ? const Color(0xFF4CAF50).withOpacity(0.1) : Colors.transparent,
-                borderRadius: BorderRadius.circular(12),
+                color: Colors.white.withOpacity(0.9),
+                borderRadius: BorderRadius.circular(28),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 20,
+                    offset: Offset(0, 8),
+                  ),
+                ],
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.2),
+                ),
               ),
               child: Icon(
                 icon,
@@ -258,333 +277,235 @@ class _HomepageState extends State<Homepage> with TickerProviderStateMixin {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       body: SafeArea(
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: SlideTransition(
-            position: _slideAnimation,
-            child: CustomScrollView(
-              slivers: [
-                // Header Section
-                SliverToBoxAdapter(
-                  child: Container(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      children: [
-                        // Top Navigation
-                        Row(
-                          children: [
-                            // Profile Avatar
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (_) => const ProfilePage()),
-                                );
-                              },
-                              child: Container(
-                                width: 48,
-                                height: 48,
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [Color(0xFF4CAF50), Color(0xFF45A049)],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ),
-                                  borderRadius: BorderRadius.circular(24),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: const Color(0xFF4CAF50).withOpacity(0.3),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                                child: const Icon(
-                                  Icons.person_rounded,
-                                  color: Colors.white,
-                                  size: 24,
-                                ),
-                              ),
-                            ),
-                            const Spacer(),
-                            // Notification Icon
-                            Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(22),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.06),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: const Icon(
-                                Icons.notifications_none_rounded,
-                                color: Color(0xFF6B7280),
-                                size: 22,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            // Logout Button
-                            GestureDetector(
-                              onTap: signout,
-                              child: Container(
-                                width: 44,
-                                height: 44,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(22),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.06),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                                child: const Icon(
-                                  Icons.logout_rounded,
-                                  color: Color(0xFFEF4444),
-                                  size: 22,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        
-                        const SizedBox(height: 32),
-                        
-                        // Greeting Section
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    _getGreeting(),
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.grey[600],
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    _getUserName(),
-                                    style: const TextStyle(
-                                      fontSize: 28,
-                                      fontWeight: FontWeight.w800,
-                                      color: Color(0xFF1A1A1A),
-                                      height: 1.1,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        
-                        const SizedBox(height: 8),
-                      ],
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: SlideTransition(
+          position: _slideAnimation,
+          child: CustomScrollView(
+            slivers: [
+              // 🌟 Header Section
+              SliverToBoxAdapter(
+                child: Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFFB9FBC0), Color(0xFF9EEBCF)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(32),
+                      bottomRight: Radius.circular(32),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 12,
+                        offset: Offset(0, 6),
+                      ),
+                    ],
                   ),
-                ),
 
-                // Main Features Section
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 8),
-                        const Text(
-                          "Your Wellbeing Dashboard",
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF1A1A1A),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        
-                        // Emotion Diary - Main Feature
-                        _buildMainFeatureCard(
-                          icon: Icons.favorite_rounded,
-                          title: "Mental Edge",
-                          subtitle: "Healthy life is having a healthy mind so build a healthy mind than the healthy body.",
-                          primaryColor: const Color(0xFF4CAF50),
-                          backgroundColor: const Color(0xFF4CAF50),
-                          isFullWidth: true,
-                          onTap: () {
-                            Navigator.push(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 🔹 Top Nav Bar
+                      Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () => Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (_) => const DiaryScreen()),
-                            );
-                          },
+                              MaterialPageRoute(builder: (_) => const ProfilePage()),
+                            ),
+                            child: CircleAvatar(
+                              radius: 26,
+                              backgroundColor: Colors.white.withOpacity(0.3),
+                              child: const Icon(Icons.person, color: Colors.white, size: 26),
+                            ),
+                          ),
+                          const Spacer(),
+                          _buildIconButton(Icons.notifications_none_rounded, Colors.white),
+                          const SizedBox(width: 12),
+                          GestureDetector(
+                            onTap: signout,
+                            child: _buildIconButton(Icons.logout_rounded, Colors.redAccent),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 28),
+                      // 🔹 Greeting
+                      Text(
+                        _getGreeting(),
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Color.fromARGB(255, 2, 2, 2),
                         ),
-                        
-                        const SizedBox(height: 20),
-                        
-                        // Grid of Features
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildCompactCard(
-                                icon: Icons.analytics_outlined,
-                                title: "Progress Chart",
-                                subtitle: "Track emotional patterns",
-                                iconColor: const Color(0xFFF59E0B),
-                                onTap: () {
-                                  Navigator.push(context, MaterialPageRoute(builder: (_) => const EmotionChartPage()));
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildCompactCard(
-                                icon: Icons.psychology_outlined,
-                                title: "AI Assistant",
-                                subtitle: "Your wellbeing companion",
-                                iconColor: const Color(0xFF3B82F6),
-                                onTap: () {
-                                  Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatbotPage()));
-                                },
-                              ),
-                            ),
-                          ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _getUserName(),
+                        style: const TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Color.fromARGB(255, 2, 2, 2),
                         ),
-                        
-                        const SizedBox(height: 16),
-                        
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildCompactCard(
-                                icon: Icons.schedule_outlined,
-                                title: "Smart Reminders",
-                                subtitle: "Never miss self-care",
-                                iconColor: const Color(0xFF8B5CF6),
-                                onTap: () {
-                                  Navigator.push(context, MaterialPageRoute(builder: (_) => const ReminderListPage()));
-                                },
-                              ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        "Take care of your mind today 🌿",
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Color.fromARGB(255, 2, 2, 2),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // 🌟 Dashboard
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Your Wellbeing Dashboard",
+                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // 🔹 Main Feature
+                      _buildMainFeatureCard(
+                        icon: Icons.favorite_rounded,
+                        title: "Mental Edge",
+                        subtitle: "Healthy mind, healthy body",
+                        primaryColor: Colors.white,
+                        backgroundColor: const Color(0xFF4CAF50),
+                        isFullWidth: true,
+                        onTap: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => const DiaryScreen()));
+                        },
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // 🔹 Grid
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildCompactCard(
+                              icon: Icons.analytics_outlined,
+                              title: "Progress Chart",
+                              subtitle: "Track your emotions",
+                              iconColor: const Color(0xFFF59E0B),
+                              onTap: () {
+                                Navigator.push(context, MaterialPageRoute(builder: (_) => const EmotionChartPage()));
+                              },
                             ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildCompactCard(
-                                icon: Icons.lightbulb_outline_rounded,
-                                title: "Wellness Tips",
-                                subtitle: "Personalized suggestions",
-                                iconColor: const Color(0xFFEC4899),
-                                onTap: () {
-                                  Navigator.push(context, MaterialPageRoute(builder: (_) => const SuggestionListPage()));
-                                },
-                              ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _buildCompactCard(
+                              icon: Icons.psychology_outlined,
+                              title: "AI Assistant",
+                              subtitle: "Your mental buddy",
+                              iconColor: const Color(0xFF3B82F6),
+                              onTap: () {
+                                Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatbotPage()));
+                              },
                             ),
-                          ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildCompactCard(
+                              icon: Icons.schedule_outlined,
+                              title: "Smart Reminders",
+                              subtitle: "Stay on track",
+                              iconColor: const Color(0xFF8B5CF6),
+                              onTap: () {
+                                Navigator.push(context, MaterialPageRoute(builder: (_) => const ReminderListPage()));
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _buildCompactCard(
+                              icon: Icons.lightbulb_outline_rounded,
+                              title: "Wellness Tips",
+                              subtitle: "Daily inspiration",
+                              iconColor: const Color(0xFFEC4899),
+                              onTap: () {
+                                Navigator.push(context, MaterialPageRoute(builder: (_) => const SuggestionListPage()));
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // 🌟 Inspiration Card
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Container(
+                    padding: const EdgeInsets.all(28),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF667eea).withOpacity(0.3),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
                         ),
                       ],
                     ),
-                  ),
-                ),
-
-                // Today's Inspiration Section
-                SliverToBoxAdapter(
-                  child: Container(
-                    padding: const EdgeInsets.all(24),
-                    margin: const EdgeInsets.only(top: 32),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        const Icon(Icons.format_quote, color: Colors.white, size: 30),
+                        const SizedBox(height: 12),
                         const Text(
-                          "Today's Inspiration",
+                          "Your mental health matters",
                           style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF1A1A1A),
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
                         ),
-                        const SizedBox(height: 20),
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(28),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [
-                                Color(0xFF667eea),
-                                Color(0xFF764ba2),
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF667eea).withOpacity(0.4),
-                                blurRadius: 20,
-                                offset: const Offset(0, 10),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                width: 56,
-                                height: 56,
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: const Icon(
-                                  Icons.auto_awesome_rounded,
-                                  color: Colors.white,
-                                  size: 28,
-                                ),
-                              ),
-                              const SizedBox(height: 20),
-                              const Text(
-                                "Your mental health matters",
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
-                                  height: 1.2,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                "Take a moment today to check in with yourself. Small steps lead to big changes in your wellbeing journey.",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.white.withOpacity(0.9),
-                                  height: 1.5,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                            ],
+                        const SizedBox(height: 8),
+                        Text(
+                          "Take a moment today to check in with yourself. Small steps lead to big changes.",
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: Colors.white.withOpacity(0.9),
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
-
-                // Bottom Spacing
-                const SliverToBoxAdapter(
-                  child: SizedBox(height: 40),
-                ),
-              ],
-            ),
+              ),
+              const SliverToBoxAdapter(child: SizedBox(height: 40)),
+            ],
           ),
         ),
       ),
+    ),
+
       // Menu
       bottomNavigationBar: Container(
         margin: const EdgeInsets.all(16),
@@ -686,7 +607,17 @@ class _HomepageState extends State<Homepage> with TickerProviderStateMixin {
       ),
     );
   }
-
+  Widget _buildIconButton(IconData icon, Color color) {
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Icon(icon, color: color, size: 22),
+    );
+  }
   String _getGreeting() {
     final hour = DateTime.now().hour;
     if (hour < 12) {

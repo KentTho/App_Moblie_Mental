@@ -17,11 +17,14 @@ class NoteIconButtonOutlined extends StatelessWidget {
     return OutlinedButton(
       onPressed: onPressed,
       style: OutlinedButton.styleFrom(
-        side: const BorderSide(color: primaryColor),
+        side: const BorderSide(color: primaryColor, width: 1.4),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
         ),
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(14),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        shadowColor: Colors.black.withOpacity(0.05),
       ),
       child: FaIcon(icon, color: primaryColor, size: 20),
     );

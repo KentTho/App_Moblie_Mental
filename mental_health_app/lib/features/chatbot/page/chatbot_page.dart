@@ -47,11 +47,14 @@ class _ChatbotPageState extends State<ChatbotPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         title: const Text('24/7 AI Support'),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: const Color(0xFF4CAF50),
+        centerTitle: true,
+        elevation: 1,
       ),
-      body: SafeArea( // Thêm SafeArea
+      body: SafeArea(
         child: Column(
           children: [
             Expanded(
@@ -59,7 +62,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
                 builder: (context, chatbotProvider, child) {
                   return ListView.builder(
                     controller: _scrollController,
-                    padding: const EdgeInsets.all(10.0),
+                    padding: const EdgeInsets.all(12.0),
                     itemCount: chatbotProvider.messages.length,
                     itemBuilder: (context, index) {
                       final message = chatbotProvider.messages[index];
@@ -84,37 +87,53 @@ class _ChatbotPageState extends State<ChatbotPage> {
         alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
         child: ConstrainedBox(
           constraints: BoxConstraints(
-            maxWidth: MediaQuery.of(context).size.width * 0.8,
+            maxWidth: MediaQuery.of(context).size.width * 0.75,
           ),
           child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 15.0),
             decoration: BoxDecoration(
-              color: isUser ? Colors.deepPurple.shade100 : Colors.grey.shade200,
+              gradient: isUser
+                  ? const LinearGradient(
+                      colors: [Color(0xFF81C784), Color(0xFF4CAF50)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
+                  : const LinearGradient(
+                      colors: [Color(0xFFE0F7FA), Color(0xFFB2EBF2)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
               borderRadius: BorderRadius.only(
-                topLeft: const Radius.circular(15),
-                topRight: const Radius.circular(15),
-                bottomLeft: isUser ? const Radius.circular(15) : Radius.zero,
-                bottomRight: isUser ? Radius.zero : const Radius.circular(15),
+                topLeft: const Radius.circular(18),
+                topRight: const Radius.circular(18),
+                bottomLeft: isUser ? const Radius.circular(18) : const Radius.circular(4),
+                bottomRight: isUser ? const Radius.circular(4) : const Radius.circular(18),
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.shade300,
+                  blurRadius: 4,
+                  offset: const Offset(2, 2),
+                ),
+              ],
             ),
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   message.text,
                   style: TextStyle(
-                    color: isUser ? Colors.deepPurple.shade900 : Colors.black87,
-                    fontSize: 15.0,
+                    color: isUser ? Colors.white : Colors.black87,
+                    fontSize: 15,
                   ),
-                  softWrap: true,
                 ),
                 const SizedBox(height: 4),
                 Text(
                   DateFormat('hh:mm a').format(message.timestamp),
                   style: TextStyle(
-                    color: Colors.grey.shade600,
-                    fontSize: 10.0,
+                    color: isUser ? Colors.white70 : Colors.grey[600],
+                    fontSize: 10,
                   ),
                 ),
               ],
@@ -127,8 +146,17 @@ class _ChatbotPageState extends State<ChatbotPage> {
 
   Widget _buildMessageInput() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 10.0),
-      color: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.shade300,
+            blurRadius: 4,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
       child: Consumer<ChatbotProvider>(
         builder: (context, chatbotProvider, child) {
           return Row(
@@ -138,33 +166,40 @@ class _ChatbotPageState extends State<ChatbotPage> {
                   controller: _messageController,
                   decoration: InputDecoration(
                     hintText: 'Type your message...',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(25.0),
-                      borderSide: BorderSide.none,
-                    ),
                     filled: true,
                     fillColor: Colors.grey.shade100,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
-                  onSubmitted: (value) => _sendMessage(),
+                  onSubmitted: (_) => _sendMessage(),
                 ),
               ),
-              const SizedBox(width: 8.0),
+              const SizedBox(width: 8),
               chatbotProvider.isSending
                   ? const CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.deepPurple),
+                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF4CAF50)),
                     )
-                  : FloatingActionButton(
-                      onPressed: _sendMessage,
-                      backgroundColor: Colors.deepPurple,
-                      mini: true,
-                      child: const Icon(Icons.send, color: Colors.white),
-                  )
+                  : Container(
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          colors: [Color(0xFF81C784), Color(0xFF4CAF50)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.send, color: Colors.white),
+                        onPressed: _sendMessage,
+                      ),
+                    ),
             ],
           );
         },
       ),
     );
   }
-
 }

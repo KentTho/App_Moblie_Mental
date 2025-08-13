@@ -1,21 +1,60 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:mental_health_app/features/home/profile/edit_profile_page.dart';
+import 'package:mental_health_app/features/home/profile/widge/avater_profile.dart';
 import 'package:mental_health_app/features/security/security_page.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:cached_network_image/cached_network_image.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
-  // Mock data for demonstration - in real app, this would come from your database
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin {
+  late AnimationController _fadeController;
+  late AnimationController _slideController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    _slideController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+    
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _fadeController, curve: Curves.easeOutQuart),
+    );
+    
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic));
+    
+    _fadeController.forward();
+    _slideController.forward();
+  }
+
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    _slideController.dispose();
+    super.dispose();
+  }
+
   Future<Map<String, dynamic>> getUserData(User user) async {
     final uid = user.uid;
     final response = await http.get(Uri.parse("http://10.0.2.2:8000/user/firebase/$uid"));
-    // 🛠 thay bằng IP backend thực tế
-
-
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       return {
@@ -26,8 +65,8 @@ class ProfilePage extends StatelessWidget {
         'role': data['role'] ?? 'user',
         'is_verified': data['is_verified'] ?? false,
         'avatar_url': data['avatar_url'] ?? '',
-        'birthday': data['birthday'], // ISO date string
-        'gender': data['gender'],     // 'Nam' / 'Nữ' / etc.
+        'birthday': data['birthday'],
+        'gender': data['gender'],
         'created_at': DateTime.tryParse(data['created_at'] ?? '') ?? DateTime.now(),
         'updated_at': DateTime.tryParse(data['updated_at'] ?? '') ?? DateTime.now(),
       };
@@ -36,127 +75,241 @@ class ProfilePage extends StatelessWidget {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
+    final size = MediaQuery.of(context).size;
 
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 249, 249, 250),
       body: Container(
         decoration: const BoxDecoration(
-          gradient: LinearGradient(
+          gradient: RadialGradient(
+            center: Alignment.topCenter,
+            radius: 1.2,
             colors: [
-              Color(0xFFE8F5E8), // Soft mint green
-              Color(0xFFF0FFF0), // Honeydew
-              Color(0xFFF5FFFA), // Mint cream
+              Color(0xFFa8edea),
+              Color(0xFFfed6e3),
             ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
           ),
         ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Custom App Bar
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF4CAF50), Color(0xFF2E7D32)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(30),
-                    bottomRight: Radius.circular(30),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Color(0xFF4CAF50).withOpacity(0.3),
-                      blurRadius: 10,
-                      offset: const Offset(0, 5),
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            // Modern App Bar
+            SliverAppBar(
+              expandedHeight: 120,
+              floating: false,
+              pinned: true,
+              backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+              elevation: 0,
+              flexibleSpace: FlexibleSpaceBar(
+                background: Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Color(0xFFa8edea),
+                        Color(0xFFa8edea),
+                        Color(0xFFfed6e3),
+                      ],
                     ),
-                  ],
+                  ),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          const Color.fromARGB(200, 218, 215, 215),
+                          const Color.fromARGB(255, 208, 209, 214).withOpacity(0.3),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
-                child: Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(
-                          Icons.arrow_back_ios_rounded,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      ),
-                    ),
-                    const Expanded(
-                      child: Text(
-                        "Thông tin cá nhân",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ),
-
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pop(context);
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfilePage()));
-                      },
-                      child:Container(
-                        padding: const EdgeInsets.all(8),
-
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(
-                          Icons.edit_rounded,
-                          color: Colors.white,
-                          size: 20,
-
-                        ),
-                      ),
-                    ),
-                  ],
+                title: const Text(
+                  'Hồ sơ cá nhân',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Color.fromARGB(255, 5, 5, 5),
+                  ),
+                ),
+                centerTitle: true,
+              ),
+              leading: Container(
+                margin: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white.withOpacity(0.1)),
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 18),
+                  onPressed: () => Navigator.pop(context),
                 ),
               ),
-
-              // Main Content
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: user == null
-                      ? _buildNoUserState()
-                      : FutureBuilder<Map<String, dynamic>>(
-                    future: getUserData(user),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      } else if (snapshot.hasError) {
-                        return Center(child: Text("Lỗi: ${snapshot.error}"));
-                      } else if (!snapshot.hasData) {
-                        return const Center(child: Text("Không có dữ liệu người dùng"));
-                      }
-                      final userData = snapshot.data!;
-                      return _buildUserProfile(context, userData);
+              actions: [
+                Container(
+                  margin: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.white.withOpacity(0.1)),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.edit_rounded, color: Colors.white, size: 18),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfilePage()));
                     },
                   ),
-
+                ),
+              ],
+            ),
+            
+            // Content
+            SliverToBoxAdapter(
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: SlideTransition(
+                  position: _slideAnimation,
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: user == null
+                        ? _buildNoUserState()
+                        : FutureBuilder<Map<String, dynamic>>(
+                            future: getUserData(user),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState == ConnectionState.waiting) {
+                                return _buildLoadingState();
+                              } else if (snapshot.hasError) {
+                                return _buildErrorState(snapshot.error.toString());
+                              } else if (!snapshot.hasData) {
+                                return _buildNoDataState();
+                              }
+                              final userData = snapshot.data!;
+                              return _buildUserProfile(context, userData);
+                            },
+                          ),
+                  ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.all(40),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E2A47),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white.withOpacity(0.1)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF667EEA)),
+              strokeWidth: 3,
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Đang tải thông tin...',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.8),
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorState(String error) {
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.all(30),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E2A47),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFFF6B6B).withOpacity(0.3)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFF6B6B).withOpacity(0.2),
+                borderRadius: BorderRadius.circular(50),
+              ),
+              child: const Icon(Icons.error_outline, size: 40, color: Color(0xFFFF6B6B)),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Có lỗi xảy ra',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              error,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.white.withOpacity(0.7),
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNoDataState() {
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.all(30),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E2A47),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white.withOpacity(0.1)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
+                ),
+                borderRadius: BorderRadius.circular(50),
+              ),
+              child: const Icon(Icons.person_off_rounded, size: 40, color: Colors.white),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Không có dữ liệu người dùng',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -167,40 +320,30 @@ class ProfilePage extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(30),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: const Color(0xFF1E2A47),
           borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              blurRadius: 15,
-              offset: const Offset(0, 5),
-            ),
-          ],
+          border: Border.all(color: Colors.white.withOpacity(0.1)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(15),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF66BB6A), Color(0xFF4CAF50)],
+                  colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
                 ),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(50),
               ),
-              child: const Icon(
-                Icons.person_off_rounded,
-                size: 40,
-                color: Colors.white,
-              ),
+              child: const Icon(Icons.person_off_rounded, size: 40, color: Colors.white),
             ),
             const SizedBox(height: 20),
             const Text(
-              "Không tìm thấy người dùng",
+              'Không tìm thấy người dùng',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF2D3748),
+                color: Colors.white,
               ),
             ),
           ],
@@ -210,215 +353,276 @@ class ProfilePage extends StatelessWidget {
   }
 
   Widget _buildUserProfile(BuildContext context, Map<String, dynamic> userData) {
+    return Column(
+      children: [
+        // Profile Header Card
+        _buildProfileHeader(userData),
+        const SizedBox(height: 30),
+        
+        // Stats Cards
+        _buildStatsRow(userData),
+        const SizedBox(height: 30),
+        
+        // Info Cards
+        _buildInfoSection(userData),
+        const SizedBox(height: 30),
+        
+        // Action Buttons
+        _buildActionButtons(context),
+        const SizedBox(height: 20),
+      ],
+    );
+  }
 
-    //final userData = getUserData(user);
-
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          // Profile Header
-          Container(
-            padding: const EdgeInsets.all(25),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFFFFFFF), Color(0xFFF8FFF8)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(25),
-              boxShadow: [
-                BoxShadow(
-                  color: Color(0xFF4CAF50).withOpacity(0.1),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                // Avatar
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(25),
-                  child: userData['avatar_url'] != null && userData['avatar_url'].isNotEmpty
-                      ? CachedNetworkImage(
-                    imageUrl: userData['avatar_url'],
-                    width: 100,
-                    height: 100,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => CircularProgressIndicator(),
-                    errorWidget: (context, url, error) => Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                      child: Icon(
-                        Icons.error_outline,
-                        size: 50,
-                        color: Colors.redAccent,
-                      ),
-                    ),
-                  )
-                      : Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF66BB6A), Color(0xFF4CAF50)],
-                      ),
-                    ),
-                    child: const Icon(
-                      Icons.person_rounded,
-                      size: 50,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-                // full_name
-                Text(
-                  userData['full_name'],
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF2D3748),
-                  ),
-                ),
-                const SizedBox(height: 8),
-
-                // Role Badge
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: _getRoleColors(userData['role']),
-                    ),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    _getRoleText(userData['role']),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-
-              ],
-            ),
+  Widget _buildProfileHeader(Map<String, dynamic> userData) {
+    return Container(
+      padding: const EdgeInsets.all(30),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF667EEA),
+            Color(0xFF764BA2),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(25),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF667EEA).withOpacity(0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
           ),
-
-          const SizedBox(height: 25),
-
-          // User Information Cards
-          _buildInfoCard(
-            icon: Icons.email_rounded,
-            title: "Email",
-            value: userData['email'],
-            subtitle: userData['is_verified'] ? "Đã xác thực" : "Chưa xác thực",
-            colors: [const Color(0xFF4CAF50), const Color(0xFF66BB6A)],
-            isVerified: userData['is_verified'],
-          ),
-
-          const SizedBox(height: 15),
-
-          _buildInfoCard(
-            icon: Icons.fingerprint_rounded,
-            title: "User ID",
-            value: userData['id'],
-            subtitle: "Mã định danh duy nhất",
-            colors: [const Color(0xFF2E7D32), const Color(0xFF388E3C)],
-          ),
-
-          const SizedBox(height: 15),
-
-          _buildInfoCard(
-            icon: Icons.lock_rounded,
-            title: "Mật khẩu",
-            value: userData['password'],
-            subtitle: "Bảo mật tài khoản",
-            colors: [const Color(0xFF66BB6A), const Color(0xFF81C784)],
-          ),
-
-          const SizedBox(height: 15),
-
-          if (userData['birthday'] != null)
-            _buildInfoCard(
-              icon: Icons.cake_rounded,
-              title: "Ngày sinh",
-              value: _formatDate(DateTime.parse(userData['birthday'])),
-              subtitle: "Ngày sinh của bạn",
-              colors: [Color(0xFF81C784), Color(0xFFB2FF59)],
-            ),
-
-
-          const SizedBox(height: 15),
-
-          if (userData['gender'] != null)
-            _buildInfoCard(
-              icon: Icons.wc_rounded,
-              title: "Giới tính",
-              value: userData['gender'],
-              subtitle: "Giới tính được khai báo",
-              colors: [Color(0xFF80CBC4), Color(0xFF4DB6AC)],
-            ),
-
-          const SizedBox(height: 15),
-
-          _buildInfoCard(
-            icon: Icons.access_time_rounded,
-            title: "Ngày tạo tài khoản",
-            value: _formatDate(userData['created_at']),
-            subtitle: "Thành viên từ",
-            colors: [const Color(0xFF81C784), const Color(0xFF9CCC65)],
-          ),
-
-          const SizedBox(height: 15),
-
-          _buildInfoCard(
-            icon: Icons.update_rounded,
-            title: "Cập nhật gần nhất",
-            value: _formatDate(userData['updated_at']),
-            subtitle: "Lần cuối hoạt động",
-            colors: [const Color(0xFF4CAF50), const Color(0xFF8BC34A)],
-          ),
-
-          const SizedBox(height: 30),
-
-
-          // Action Buttons
-          Row(
-            children: [
-              Expanded(
-                child: _buildActionButton(
-                  icon: Icons.edit_rounded,
-                  label: "Chỉnh sửa",
-                  colors: [const Color(0xFF66BB6A), const Color(0xFF4CAF50)],
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfilePage()));
-                  },
-                ),
-              ),
-              const SizedBox(width: 15),
-              Expanded(
-                child: _buildActionButton(
-                  icon: Icons.security_rounded,
-                  label: "Bảo mật",
-                  colors: [const Color(0xFF4CAF50), const Color(0xFF2E7D32)],
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const SecurityPage()));
-                  },
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 20),
         ],
       ),
+      child: Column(
+        children: [
+          // Avatar with ring
+          Stack(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.white.withOpacity(0.3),
+                      Colors.white.withOpacity(0.1),
+                    ],
+                  ),
+                ),
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                  ),
+                  child: ClipOval(
+                    child: userData['avatar_url'] != null && userData['avatar_url'].isNotEmpty
+                        ? CachedNetworkImage(
+                            imageUrl: userData['avatar_url'],
+                            width: 120,
+                            height: 120,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => avatar_profile(),
+                            errorWidget: (context, url, error) => _buildDefaultAvatar(),
+                          )
+                        : _buildDefaultAvatar(),
+                  ),
+                ),
+              ),
+              if (userData['is_verified'])
+                Positioned(
+                  bottom: 8,
+                  right: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF4ECDC4),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF4ECDC4).withOpacity(0.5),
+                          blurRadius: 8,
+                        ),
+                      ],
+                    ),
+                    child: const Icon(Icons.verified, size: 16, color: Colors.white),
+                  ),
+                ),
+            ],
+          ),
+          
+          const SizedBox(height: 20),
+          
+          // Name
+          Text(
+            userData['full_name'],
+            style: const TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          
+          const SizedBox(height: 8),
+          
+          // Role Badge
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.white.withOpacity(0.3)),
+            ),
+            child: Text(
+              _getRoleText(userData['role']),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+          
+          const SizedBox(height: 12),
+          
+          // Email
+          Text(
+            userData['email'],
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.white.withOpacity(0.8),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatsRow(Map<String, dynamic> userData) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildStatCard(
+            icon: Icons.access_time_rounded,
+            title: 'Thành viên từ',
+            value: _getYearFromDate(userData['created_at']),
+            gradient: const [Color(0xFF4FACFE), Color(0xFF00F2FE)],
+          ),
+        ),
+        const SizedBox(width: 15),
+        Expanded(
+          child: _buildStatCard(
+            icon: userData['is_verified'] ? Icons.verified_user : Icons.pending,
+            title: 'Trạng thái',
+            value: userData['is_verified'] ? 'Đã xác thực' : 'Chưa xác thực',
+            gradient: userData['is_verified'] 
+                ? const [Color(0xFF4ECDC4), Color(0xFF44A08D)]
+                : const [Color(0xFFFFB75E), Color(0xFFED8F03)],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatCard({
+    required IconData icon,
+    required String title,
+    required String value,
+    required List<Color> gradient,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(colors: gradient),
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: gradient.first.withOpacity(0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Icon(icon, size: 24, color: Colors.white),
+          const SizedBox(height: 8),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.white.withOpacity(0.8),
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoSection(Map<String, dynamic> userData) {
+    return Column(
+      children: [
+        _buildInfoCard(
+          icon: Icons.fingerprint,
+          title: 'User ID',
+          value: userData['id'],
+          subtitle: 'Mã định danh duy nhất',
+          gradient: const [Color(0xFF667EEA), Color(0xFF764BA2)],
+        ),
+        const SizedBox(height: 15),
+        _buildInfoCard(
+          icon: Icons.security,
+          title: 'Mật khẩu',
+          value: userData['password'],
+          subtitle: 'Bảo mật tài khoản',
+          gradient: const [Color(0xFFFF9A8B), Color(0xFFA8E6CF)],
+        ),
+        if (userData['birthday'] != null) ...[
+          const SizedBox(height: 15),
+          _buildInfoCard(
+            icon: Icons.cake,
+            title: 'Ngày sinh',
+            value: _formatDate(DateTime.parse(userData['birthday'])),
+            subtitle: 'Ngày sinh của bạn',
+            gradient: const [Color(0xFFFFC3A0), Color(0xFFFFAFBD)],
+          ),
+        ],
+        if (userData['gender'] != null) ...[
+          const SizedBox(height: 15),
+          _buildInfoCard(
+            icon: Icons.wc,
+            title: 'Giới tính',
+            value: userData['gender'],
+            subtitle: 'Giới tính được khai báo',
+            gradient: const [Color(0xFF84FAB0), Color(0xFF8FD3F4)],
+          ),
+        ],
+        const SizedBox(height: 15),
+        _buildInfoCard(
+          icon: Icons.update,
+          title: 'Cập nhật gần nhất',
+          value: _formatDate(userData['updated_at']),
+          subtitle: 'Lần cuối hoạt động',
+          gradient: const [Color(0xFFD299C2), Color(0xFFFEF9D7)],
+        ),
+      ],
     );
   }
 
@@ -427,79 +631,52 @@ class ProfilePage extends StatelessWidget {
     required String title,
     required String value,
     required String subtitle,
-    required List<Color> colors,
-    bool? isVerified,
+    required List<Color> gradient,
   }) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        color: const Color(0xFF1E2A47),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white.withOpacity(0.1)),
         boxShadow: [
           BoxShadow(
-            color: colors.first.withOpacity(0.1),
-            blurRadius: 15,
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 10,
             offset: const Offset(0, 5),
           ),
         ],
-        border: Border.all(
-          color: colors.first.withOpacity(0.1),
-          width: 1,
-        ),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              gradient: LinearGradient(colors: colors),
-              borderRadius: BorderRadius.circular(15),
+              gradient: LinearGradient(colors: gradient),
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(
-              icon,
-              color: Colors.white,
-              size: 24,
-            ),
+            child: Icon(icon, color: Colors.white, size: 22),
           ),
-          const SizedBox(width: 15),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF2D3748),
-                      ),
-                    ),
-                    if (isVerified != null) ...[
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: isVerified ? Color(0xFF4CAF50) : Color(0xFFFF9800),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Icon(
-                          isVerified ? Icons.verified_rounded : Icons.pending_rounded,
-                          size: 12,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ],
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   value,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: Color(0xFF4A5568),
+                    color: Colors.white.withOpacity(0.8),
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -508,7 +685,7 @@ class ProfilePage extends StatelessWidget {
                   subtitle,
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.grey[600],
+                    color: Colors.white.withOpacity(0.5),
                   ),
                 ),
               ],
@@ -519,24 +696,54 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
+  Widget _buildActionButtons(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildActionButton(
+            icon: Icons.edit,
+            label: 'Chỉnh sửa',
+            gradient: const [Color(0xFF667EEA), Color(0xFF764BA2)],
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfilePage()));
+            },
+          ),
+        ),
+        const SizedBox(width: 15),
+        Expanded(
+          child: _buildActionButton(
+            icon: Icons.security,
+            label: 'Bảo mật',
+            gradient: const [Color(0xFFFF9A8B), Color(0xFFFF6A88)],
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const SecurityPage()));
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildActionButton({
     required IconData icon,
     required String label,
-    required List<Color> colors,
+    required List<Color> gradient,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 15),
+        padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          gradient: LinearGradient(colors: colors),
+          gradient: LinearGradient(colors: gradient),
           borderRadius: BorderRadius.circular(15),
           boxShadow: [
             BoxShadow(
-              color: colors.first.withOpacity(0.3),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
+              color: gradient.first.withOpacity(0.3),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
             ),
           ],
         ),
@@ -559,15 +766,18 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  List<Color> _getRoleColors(String role) {
-    switch (role.toLowerCase()) {
-      case 'admin':
-        return [const Color(0xFF2E7D32), const Color(0xFF388E3C)];
-      case 'expert':
-        return [const Color(0xFF4CAF50), const Color(0xFF66BB6A)];
-      default:
-        return [const Color(0xFF66BB6A), const Color(0xFF81C784)];
-    }
+  Widget _buildDefaultAvatar() {
+    return Container(
+      width: 120,
+      height: 120,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
+        ),
+        shape: BoxShape.circle,
+      ),
+      child: const Icon(Icons.person, size: 60, color: Colors.white),
+    );
   }
 
   String _getRoleText(String role) {
@@ -584,4 +794,9 @@ class ProfilePage extends StatelessWidget {
   String _formatDate(DateTime date) {
     return "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
   }
+
+  String _getYearFromDate(DateTime date) {
+    return date.year.toString();
+  }
 }
+
