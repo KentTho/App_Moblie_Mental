@@ -6,6 +6,7 @@ class UserProfile {
   final bool isVerified;
   final String createdAt;
   final String updatedAt;
+  final String? avatarUrl; // thêm field ảnh
 
   UserProfile({
     required this.id,
@@ -15,6 +16,7 @@ class UserProfile {
     required this.isVerified,
     required this.createdAt,
     required this.updatedAt,
+    this.avatarUrl,
   });
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
@@ -26,6 +28,7 @@ class UserProfile {
       isVerified: json['is_verified'] ?? false,
       createdAt: json['created_at'] ?? '',
       updatedAt: json['updated_at'] ?? '',
+      avatarUrl: json['avatar_url'], // map từ backend
     );
   }
 }

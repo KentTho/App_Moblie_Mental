@@ -173,7 +173,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           ),
         ),
         child: SafeArea(
-          child: Column(
+          child: Column( 
             children: [
               // Custom App Bar
               Container(

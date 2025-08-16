@@ -1,10 +1,14 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
-import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import { AuthProvider } from './context/AuthContext';
-import ProtectedRoute from './components/ProtectedRoute';
 
-export default function App() {
+import './App.css'
+import { AuthProvider } from './context/AuthContext'
+import { Navigate, Route, Routes } from 'react-router-dom'
+import Login from './pages/Login'
+import ProtectedRoute from './components/ProtectedRoute'
+import Dashboard from './pages/Dashboard'
+import UserManagement from './pages/UserManagement'
+
+
+function App() {
   return (
     <AuthProvider>
       <Routes>
@@ -14,8 +18,18 @@ export default function App() {
             <Dashboard />
           </ProtectedRoute>
         } />
+        <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute>
+              <UserManagement />
+            </ProtectedRoute>
+          }
+        />
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </AuthProvider>
   );
 }
+
+export default App

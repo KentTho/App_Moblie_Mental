@@ -1,5 +1,6 @@
 // lib/features/chatbot/page/chatbot_page.dart
 import 'package:flutter/material.dart';
+import 'package:mental_health_app/features/home/homepage.dart';
 import 'package:provider/provider.dart';
 import 'package:mental_health_app/change_notifiers/chatbot_provider.dart';
 import 'package:mental_health_app/models/chatbot_model.dart';
@@ -49,11 +50,20 @@ class _ChatbotPageState extends State<ChatbotPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: const Text('24/7 AI Support'),
-        backgroundColor: const Color(0xFF4CAF50),
-        centerTitle: true,
-        elevation: 1,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back, color: Colors.white),
+        onPressed: () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const Homepage()),
+          );
+        },
       ),
+      title: const Text('24/7 AI Support'),
+      backgroundColor: const Color(0xFF4CAF50),
+      centerTitle: true,
+      elevation: 1,
+    ),
       body: SafeArea(
         child: Column(
           children: [

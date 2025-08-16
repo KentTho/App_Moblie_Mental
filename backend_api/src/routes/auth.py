@@ -136,6 +136,24 @@ def get_notes_by_firebase_uid(firebase_uid: str, db: Session = Depends(get_db)):
     notes = db.query(Note).filter(Note.user_id == user.id).order_by(Note.created_at.desc()).all()
     return notes
 
+@router.get("/list")
+def get_all_users(db: Session = Depends(get_db)):
+    users = db.query(User, UserProfile).join(UserProfile, User.id == UserProfile.user_id).all()
+    return [
+        {
+            "id": str(user.id),
+            "email": user.email,
+            "full_name": profile.full_name if profile else None,
+            "avatar_url": profile.avatar_url if profile else None,
+            "role": user.role,
+            "is_verified": user.is_verified,
+            "birthday": profile.birthday if profile else None,
+            "gender": profile.gender if profile else None,
+            "created_at": user.created_at,
+        }
+        for user, profile in users
+    ]
+
 
 # --- UPDATE PROFILE ---
 @router.put("/update-profile")
@@ -215,7 +233,7 @@ def update_fcm_token(
     db.commit()
     return {"message": "FCM token updated"}
 
-@router.put("/user/set-role/{uid}")
+@router.put("/set-role/{uid}")
 async def set_user_role(uid: str, role: str, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.firebase_uid == uid).first()
     if not user:

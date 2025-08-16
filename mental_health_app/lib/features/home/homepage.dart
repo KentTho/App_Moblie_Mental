@@ -9,6 +9,7 @@ import 'package:mental_health_app/features/diary/screen/diary_screen.dart';
 import 'package:mental_health_app/features/home/profile/profile_page.dart';
 import 'package:mental_health_app/features/reminders/page/reminder_list_page.dart';
 import 'package:mental_health_app/features/suggestions/page/suggestion_list_page.dart';
+import 'package:mental_health_app/ui/custom_bottom_nav.dart';
 
 class Homepage extends StatefulWidget {
   const Homepage({super.key});
@@ -505,106 +506,8 @@ class _HomepageState extends State<Homepage> with TickerProviderStateMixin {
         ),
       ),
     ),
-
       // Menu
-      bottomNavigationBar: Container(
-        margin: const EdgeInsets.all(16),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.95),
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-          ],
-          border: Border.all(
-            color: Colors.white.withOpacity(0.2),
-            width: 1,
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildBottomNavItem(
-              icon: Icons.home_rounded,
-              label: "Home",
-              isSelected: true,
-              onTap: () {
-                // Already on home page
-              },
-            ),
-            _buildBottomNavItem(
-              icon: Icons.mic_rounded,
-              label: "Record",
-              isSelected: false,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const DiaryScreen()),
-                );
-              },
-            ),
-            // Center Add Button
-            GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const DiaryScreen()),
-                );
-              },
-              child: Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF4CAF50), Color(0xFF45A049)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(28),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF4CAF50).withOpacity(0.4),
-                      blurRadius: 12,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.add,
-                  color: Colors.white,
-                  size: 28,
-                ),
-              ),
-            ),
-            _buildBottomNavItem(
-              icon: Icons.list_rounded,
-              label: "Sessions",
-              isSelected: false,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const EmotionChartPage()),
-                );
-              },
-            ),
-            _buildBottomNavItem(
-              icon: Icons.person_rounded,
-              label: "Profile",
-              isSelected: false,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ProfilePage()),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
+       bottomNavigationBar: const CustomBottomNav(currentIndex: 0),
     );
   }
   Widget _buildIconButton(IconData icon, Color color) {

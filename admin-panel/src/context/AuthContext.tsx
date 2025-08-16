@@ -1,45 +1,45 @@
-import { createContext, useContext, useEffect, useState } from 'react';
-import { getAuth, onAuthStateChanged, signOut, User } from 'firebase/auth';
+import { createContext, useContext, useState, useEffect } from 'react';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { firebaseApp } from '../firebase/firebase';
-import axios from 'axios';
 
 const AuthContext = createContext<any>(null);
 
-export const AuthProvider = ({ children }: any) => {
-  const [user, setUser] = useState<User | null>(null);
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const auth = getAuth(firebaseApp);
+
+  const fetchUserRole = async (uid: string) => {
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/user/firebase/${uid}`);
+      const data = await res.json();
+      return data.role;
+    } catch {
+      return null;
+    }
+  };
 
   useEffect(() => {
-    const auth = getAuth(firebaseApp);
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        const token = await firebaseUser.getIdToken();
-
-        const res = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/user/firebase/${firebaseUser.uid}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        setUser(firebaseUser);
-        setIsAdmin(res.data.role === 'admin');
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+        const role = await fetchUserRole(currentUser.uid);
+        setIsAdmin(role === 'admin');
       } else {
         setUser(null);
         setIsAdmin(false);
       }
     });
-
     return () => unsubscribe();
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isAdmin, signOut: () => signOut(getAuth(firebaseApp)) }}>
+    <AuthContext.Provider value={{ user, isAdmin, setUser, setIsAdmin }}>
       {children}
     </AuthContext.Provider>
   );
-};
+}
 
-export const useAuth = () => useContext(AuthContext);
+export function useAuth() {
+  return useContext(AuthContext);
+}

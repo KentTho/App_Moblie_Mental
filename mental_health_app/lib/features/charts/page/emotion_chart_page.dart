@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mental_health_app/features/home/homepage.dart';
 import 'package:provider/provider.dart';
 import 'package:mental_health_app/change_notifiers/chart_provider.dart';
 import 'package:mental_health_app/models/emotion_chart_model.dart';
@@ -47,12 +48,26 @@ class _EmotionChartPageState extends State<EmotionChartPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF2E7D32)),
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const Homepage()),
+            );
+          },
+        ),
         title: const Text(
           'Biểu đồ Cảm xúc',
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF2E7D32)),
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF2E7D32),
+          ),
         ),
         actions: [_buildTimeRangeDropdown()],
       ),
+
       body: _buildBodyContent(),
     );
   }

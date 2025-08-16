@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:mental_health_app/features/home/homepage.dart';
 import 'package:mental_health_app/features/home/profile/edit_profile_page.dart';
 import 'package:mental_health_app/features/home/profile/widge/avater_profile.dart';
 import 'package:mental_health_app/features/security/security_page.dart';
@@ -142,7 +143,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
               leading: Container(
                 margin: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: const Color.fromARGB(255, 7, 7, 7).withOpacity(0.2),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: Colors.white.withOpacity(0.1)),
                 ),
@@ -155,7 +156,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                 Container(
                   margin: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: const Color.fromARGB(255, 22, 22, 22).withOpacity(0.2),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: Colors.white.withOpacity(0.1)),
                   ),
@@ -768,8 +769,8 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
 
   Widget _buildDefaultAvatar() {
     return Container(
-      width: 120,
-      height: 120,
+      width: 150,
+      height: 150,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
